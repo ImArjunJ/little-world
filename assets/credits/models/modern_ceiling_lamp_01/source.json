@@ -1,0 +1,55 @@
+{
+  "asset": "modern_ceiling_lamp_01",
+  "page": "https://polyhaven.com/a/modern_ceiling_lamp_01",
+  "license": "CC0-1.0",
+  "resolution": "2k",
+  "files": {
+    "modern_ceiling_lamp_01.gltf": {
+      "include": {
+        "textures/modern_ceiling_lamp_01_arm_2k.jpg": {
+          "size": 412296,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modern_ceiling_lamp_01/modern_ceiling_lamp_01_arm_2k.jpg",
+          "md5": "ab7c9670ac05907649ab63932ef88b2a"
+        },
+        "textures/modern_ceiling_lamp_01_nor_gl_2k.jpg": {
+          "size": 267241,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modern_ceiling_lamp_01/modern_ceiling_lamp_01_nor_gl_2k.jpg",
+          "md5": "242130eeac95d65dc878a20d271faf86"
+        },
+        "modern_ceiling_lamp_01.bin": {
+          "size": 146828,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/modern_ceiling_lamp_01/modern_ceiling_lamp_01.bin",
+          "md5": "48b86e7e6db78e6d3dfd85b765c3ab68"
+        },
+        "textures/modern_ceiling_lamp_01_diff_2k.jpg": {
+          "size": 240872,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modern_ceiling_lamp_01/modern_ceiling_lamp_01_diff_2k.jpg",
+          "md5": "55956852d44470d86da29fad4fd38099"
+        }
+      },
+      "size": 6177,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/2k/modern_ceiling_lamp_01/modern_ceiling_lamp_01_2k.gltf",
+      "md5": "f82da13a17c9132f29338a04faf4ab32"
+    },
+    "textures/modern_ceiling_lamp_01_arm_2k.jpg": {
+      "size": 412296,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modern_ceiling_lamp_01/modern_ceiling_lamp_01_arm_2k.jpg",
+      "md5": "ab7c9670ac05907649ab63932ef88b2a"
+    },
+    "textures/modern_ceiling_lamp_01_nor_gl_2k.jpg": {
+      "size": 267241,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modern_ceiling_lamp_01/modern_ceiling_lamp_01_nor_gl_2k.jpg",
+      "md5": "242130eeac95d65dc878a20d271faf86"
+    },
+    "modern_ceiling_lamp_01.bin": {
+      "size": 146828,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/modern_ceiling_lamp_01/modern_ceiling_lamp_01.bin",
+      "md5": "48b86e7e6db78e6d3dfd85b765c3ab68"
+    },
+    "textures/modern_ceiling_lamp_01_diff_2k.jpg": {
+      "size": 240872,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modern_ceiling_lamp_01/modern_ceiling_lamp_01_diff_2k.jpg",
+      "md5": "55956852d44470d86da29fad4fd38099"
+    }
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "asset": "rubber_boots",
+  "page": "https://polyhaven.com/a/rubber_boots",
+  "license": "CC0-1.0",
+  "files": {
+    "rubber_boots.gltf": {
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/rubber_boots/rubber_boots_1k.gltf",
+      "md5": "c88bb060db54940d4d83b62ff940773f",
+      "size": 6106,
+      "include": {
+        "textures/rubber_boots_nor_gl_1k.jpg": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/rubber_boots/rubber_boots_nor_gl_1k.jpg",
+          "md5": "bdc45b08754c7af00c28fec2011113e4",
+          "size": 204450
+        },
+        "textures/rubber_boots_diff_1k.jpg": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/rubber_boots/rubber_boots_diff_1k.jpg",
+          "md5": "d6cb4bd5f80fce60395aab9d7c4a7b03",
+          "size": 122413
+        },
+        "textures/rubber_boots_arm_1k.jpg": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/rubber_boots/rubber_boots_arm_1k.jpg",
+          "md5": "224ce695d3a8747a3b21f91babee87dd",
+          "size": 111952
+        },
+        "textures/rubber_boots_dirty_nor_gl_1k.jpg": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/rubber_boots/rubber_boots_dirty_nor_gl_1k.jpg",
+          "md5": "ab4afe5620a55ce7cbb7b791992a6cb2",
+          "size": 248492
+        },
+        "textures/rubber_boots_dirty_diff_1k.jpg": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/rubber_boots/rubber_boots_dirty_diff_1k.jpg",
+          "md5": "cc4184c4749d12ee5e56c6ddfd7a51db",
+          "size": 291900
+        },
+        "textures/rubber_boots_dirty_arm_1k.jpg": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/rubber_boots/rubber_boots_dirty_arm_1k.jpg",
+          "md5": "edac8b0409217c3ac003e9e4d35dc296",
+          "size": 373800
+        },
+        "rubber_boots.bin": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/rubber_boots/rubber_boots.bin",
+          "md5": "7c6d47a128a1703b2875208b9a6c5422",
+          "size": 653312
+        }
+      }
+    }
+  }
+}

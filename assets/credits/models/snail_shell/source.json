@@ -1,0 +1,22 @@
+{
+  "asset": "snail_shell",
+  "author": "TinyWorlds",
+  "page": "https://opengameart.org/content/snail-3d-model",
+  "license": "CC0-1.0",
+  "source_archive": "https://opengameart.org/sites/default/files/snail_tinyworlds_0.zip",
+  "archive_sha256": "544e647c39d761f3b9601530ca65557da2c67e7c6e0f6d4a4b708881db768cbd",
+  "files": {
+    "snail_shell.gltf": {
+      "sha256": "6f7e7ff84dfd0ab7365fa5282835dad0984f729adb423842f7eefc910308756d"
+    },
+    "snail_shell.bin": {
+      "sha256": "c40b40aad1f4149d0efcf5e9b7dd63a232d08b07cc7df7cdbd02b9d5cf6092e0"
+    },
+    "albedo.jpg": {
+      "sha256": "b1e6d9b2b624409ac51b48937c6c4f5ab83aaf153ca86e04312db0f603907563"
+    },
+    "normal.jpg": {
+      "sha256": "aa5c94508e6f7cadbd7adc8ccb43bc8c447167f9c575d019eabcf7b61c4fb29b"
+    }
+  }
+}

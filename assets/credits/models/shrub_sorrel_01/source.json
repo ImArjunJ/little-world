@@ -1,0 +1,49 @@
+{
+  "asset": "shrub_sorrel_01",
+  "page": "https://polyhaven.com/a/shrub_sorrel_01",
+  "license": "CC0-1.0",
+  "resolution": "1k",
+  "files": {
+    "shrub_sorrel_01.gltf": {
+      "size": 17428,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/shrub_sorrel_01/shrub_sorrel_01_1k.gltf",
+      "md5": "d56d50a8492bd7d7c7a0a571f42239c6"
+    },
+    "textures/shrub_sorrel_01_nor_gl_1k.jpg": {
+      "size": 470891,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/shrub_sorrel_01/shrub_sorrel_01_nor_gl_1k.jpg",
+      "md5": "71c6c432b91a8d64f2c480366fd61dfb"
+    },
+    "shrub_sorrel_01.bin": {
+      "size": 110936,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/shrub_sorrel_01/shrub_sorrel_01.bin",
+      "md5": "5b6481fc43f4dc36ab4e80d79a19119f"
+    },
+    "textures/shrub_sorrel_01_arm_1k.jpg": {
+      "size": 201949,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/shrub_sorrel_01/shrub_sorrel_01_arm_1k.jpg",
+      "md5": "6230445a48867ef8196ee1ab052d346d"
+    },
+    "textures/shrub_sorrel_01_diff_1k.jpg": {
+      "size": 385129,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/shrub_sorrel_01/shrub_sorrel_01_diff_1k.jpg",
+      "md5": "bef299def81bd55c2b378d53dad803b5"
+    },
+    "textures/opacity.png": {
+      "size": 64408,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/png/1k/shrub_sorrel_01/shrub_sorrel_01_alpha_1k.png",
+      "md5": "d73e433a4b041bb19e4dfb4266598e9a"
+    },
+    "textures/diffuse.png": {
+      "size": 3109067,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/png/1k/shrub_sorrel_01/shrub_sorrel_01_diff_1k.png",
+      "md5": "b3211e6745a37ff6174c6fa3e4571f18"
+    }
+  },
+  "cutout_materials": {
+    "shrub_sorrel_01": {
+      "opacity": "textures/opacity.png",
+      "color": "textures/diffuse.png"
+    }
+  }
+}

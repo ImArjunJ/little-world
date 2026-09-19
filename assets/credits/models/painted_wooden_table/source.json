@@ -1,0 +1,55 @@
+{
+  "asset": "painted_wooden_table",
+  "page": "https://polyhaven.com/a/painted_wooden_table",
+  "license": "CC0-1.0",
+  "resolution": "2k",
+  "files": {
+    "painted_wooden_table.gltf": {
+      "include": {
+        "textures/painted_wooden_table_arm_2k.jpg": {
+          "size": 2717444,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/painted_wooden_table/painted_wooden_table_arm_2k.jpg",
+          "md5": "9fdbe35351459b37fd19302dab508a43"
+        },
+        "textures/painted_wooden_table_diff_2k.jpg": {
+          "size": 2063066,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/painted_wooden_table/painted_wooden_table_diff_2k.jpg",
+          "md5": "cb1b271a2c0e973a765aeb2e0cecb108"
+        },
+        "painted_wooden_table.bin": {
+          "size": 25552,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/4k/painted_wooden_table/painted_wooden_table.bin",
+          "md5": "c16d1a074ea0c6c3261b0deceef852f7"
+        },
+        "textures/painted_wooden_table_nor_gl_2k.jpg": {
+          "size": 2610316,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/painted_wooden_table/painted_wooden_table_nor_gl_2k.jpg",
+          "md5": "607241db60780dda6727e0a6c554231a"
+        }
+      },
+      "size": 2830,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/2k/painted_wooden_table/painted_wooden_table_2k.gltf",
+      "md5": "8a7320aba222e792b95e1eb1280d8267"
+    },
+    "textures/painted_wooden_table_arm_2k.jpg": {
+      "size": 2717444,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/painted_wooden_table/painted_wooden_table_arm_2k.jpg",
+      "md5": "9fdbe35351459b37fd19302dab508a43"
+    },
+    "textures/painted_wooden_table_diff_2k.jpg": {
+      "size": 2063066,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/painted_wooden_table/painted_wooden_table_diff_2k.jpg",
+      "md5": "cb1b271a2c0e973a765aeb2e0cecb108"
+    },
+    "painted_wooden_table.bin": {
+      "size": 25552,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/4k/painted_wooden_table/painted_wooden_table.bin",
+      "md5": "c16d1a074ea0c6c3261b0deceef852f7"
+    },
+    "textures/painted_wooden_table_nor_gl_2k.jpg": {
+      "size": 2610316,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/painted_wooden_table/painted_wooden_table_nor_gl_2k.jpg",
+      "md5": "607241db60780dda6727e0a6c554231a"
+    }
+  }
+}

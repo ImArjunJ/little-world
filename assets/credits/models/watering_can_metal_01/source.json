@@ -1,0 +1,55 @@
+{
+  "asset": "watering_can_metal_01",
+  "page": "https://polyhaven.com/a/watering_can_metal_01",
+  "license": "CC0-1.0",
+  "resolution": "2k",
+  "files": {
+    "watering_can_metal_01.gltf": {
+      "include": {
+        "watering_can_metal_01.bin": {
+          "size": 318736,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/watering_can_metal_01/watering_can_metal_01.bin",
+          "md5": "26a41806730e420dc894a685d9a80fe3"
+        },
+        "textures/watering_can_metal_01_diff_2k.jpg": {
+          "size": 2313409,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/watering_can_metal_01/watering_can_metal_01_diff_2k.jpg",
+          "md5": "1cf3604eb619abed45c75ae5cd628453"
+        },
+        "textures/watering_can_metal_01_arm_2k.jpg": {
+          "size": 3513819,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/watering_can_metal_01/watering_can_metal_01_arm_2k.jpg",
+          "md5": "dc3592323300ba283966fe43137724b5"
+        },
+        "textures/watering_can_metal_01_nor_gl_2k.jpg": {
+          "size": 2920860,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/watering_can_metal_01/watering_can_metal_01_nor_gl_2k.jpg",
+          "md5": "845561f88023756fa2f146de74859191"
+        }
+      },
+      "size": 3183,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/2k/watering_can_metal_01/watering_can_metal_01_2k.gltf",
+      "md5": "c15d3acf2748e3ad1f148f60adf092e2"
+    },
+    "watering_can_metal_01.bin": {
+      "size": 318736,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/watering_can_metal_01/watering_can_metal_01.bin",
+      "md5": "26a41806730e420dc894a685d9a80fe3"
+    },
+    "textures/watering_can_metal_01_diff_2k.jpg": {
+      "size": 2313409,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/watering_can_metal_01/watering_can_metal_01_diff_2k.jpg",
+      "md5": "1cf3604eb619abed45c75ae5cd628453"
+    },
+    "textures/watering_can_metal_01_arm_2k.jpg": {
+      "size": 3513819,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/watering_can_metal_01/watering_can_metal_01_arm_2k.jpg",
+      "md5": "dc3592323300ba283966fe43137724b5"
+    },
+    "textures/watering_can_metal_01_nor_gl_2k.jpg": {
+      "size": 2920860,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/watering_can_metal_01/watering_can_metal_01_nor_gl_2k.jpg",
+      "md5": "845561f88023756fa2f146de74859191"
+    }
+  }
+}

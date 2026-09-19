@@ -1,0 +1,23 @@
+{
+  "asset": "wood_floor",
+  "page": "https://polyhaven.com/a/wood_floor",
+  "license": "CC0-1.0",
+  "resolution": "2k",
+  "files": {
+    "albedo": {
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/wood_floor/wood_floor_diff_2k.jpg",
+      "md5": "d209b7416b022ed06093aef068c7fe23",
+      "size": 2983667
+    },
+    "normal": {
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/wood_floor/wood_floor_nor_gl_2k.jpg",
+      "md5": "e1d8a588c1fc3d62cc60da1e4cd1a689",
+      "size": 1863576
+    },
+    "arm": {
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/wood_floor/wood_floor_arm_2k.jpg",
+      "md5": "d559596b2779c4cc64bb62aed3a3111e",
+      "size": 1928292
+    }
+  }
+}

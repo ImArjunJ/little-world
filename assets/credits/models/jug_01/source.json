@@ -1,0 +1,55 @@
+{
+  "asset": "jug_01",
+  "page": "https://polyhaven.com/a/jug_01",
+  "license": "CC0-1.0",
+  "resolution": "2k",
+  "files": {
+    "jug_01.gltf": {
+      "include": {
+        "textures/jug_01_nor_gl_2k.jpg": {
+          "size": 403384,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/jug_01/jug_01_nor_gl_2k.jpg",
+          "md5": "8fc8a99ba8d36f2a259296710d4fa65d"
+        },
+        "textures/jug_01_arm_2k.jpg": {
+          "size": 2600319,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/jug_01/jug_01_arm_2k.jpg",
+          "md5": "29737febb9f6706113b9b862a9acbff8"
+        },
+        "jug_01.bin": {
+          "size": 137084,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/jug_01/jug_01.bin",
+          "md5": "f4818dd15e25681e1fcf718c9c488998"
+        },
+        "textures/jug_01_diff_2k.jpg": {
+          "size": 1686960,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/jug_01/jug_01_diff_2k.jpg",
+          "md5": "9a822a2a6b6308d20b53afdf4b09d9c9"
+        }
+      },
+      "size": 2612,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/2k/jug_01/jug_01_2k.gltf",
+      "md5": "a86f1dbf4b5f175c267bf317b76a445f"
+    },
+    "textures/jug_01_nor_gl_2k.jpg": {
+      "size": 403384,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/jug_01/jug_01_nor_gl_2k.jpg",
+      "md5": "8fc8a99ba8d36f2a259296710d4fa65d"
+    },
+    "textures/jug_01_arm_2k.jpg": {
+      "size": 2600319,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/jug_01/jug_01_arm_2k.jpg",
+      "md5": "29737febb9f6706113b9b862a9acbff8"
+    },
+    "jug_01.bin": {
+      "size": 137084,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/jug_01/jug_01.bin",
+      "md5": "f4818dd15e25681e1fcf718c9c488998"
+    },
+    "textures/jug_01_diff_2k.jpg": {
+      "size": 1686960,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/jug_01/jug_01_diff_2k.jpg",
+      "md5": "9a822a2a6b6308d20b53afdf4b09d9c9"
+    }
+  }
+}

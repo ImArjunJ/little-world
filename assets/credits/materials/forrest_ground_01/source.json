@@ -1,0 +1,22 @@
+{
+  "asset": "forrest_ground_01",
+  "page": "https://polyhaven.com/a/forrest_ground_01",
+  "license": "CC0-1.0",
+  "files": {
+    "albedo.png": {
+      "size": 6603753,
+      "md5": "8b85fb10bc45ac4969262edb5965133f",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/1k/forrest_ground_01/forrest_ground_01_diff_1k.png"
+    },
+    "normal.png": {
+      "size": 6787606,
+      "md5": "68875a9e81c29ba8f70e5dccdd66c476",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/1k/forrest_ground_01/forrest_ground_01_nor_gl_1k.png"
+    },
+    "arm.png": {
+      "size": 4650954,
+      "md5": "e6d08b420397de4144e872a10317c997",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/1k/forrest_ground_01/forrest_ground_01_arm_1k.png"
+    }
+  }
+}

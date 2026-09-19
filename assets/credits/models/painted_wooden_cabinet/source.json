@@ -1,0 +1,55 @@
+{
+  "asset": "painted_wooden_cabinet",
+  "page": "https://polyhaven.com/a/painted_wooden_cabinet",
+  "license": "CC0-1.0",
+  "resolution": "2k",
+  "files": {
+    "painted_wooden_cabinet.gltf": {
+      "include": {
+        "textures/painted_wooden_cabinet_nor_gl_2k.jpg": {
+          "size": 1864160,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/painted_wooden_cabinet/painted_wooden_cabinet_nor_gl_2k.jpg",
+          "md5": "9022a3a1d2f9e0506a46ee4d62f32d89"
+        },
+        "textures/painted_wooden_cabinet_diff_2k.jpg": {
+          "size": 2638553,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/painted_wooden_cabinet/painted_wooden_cabinet_diff_2k.jpg",
+          "md5": "a3d5e6f643b052e618212949f86ca81e"
+        },
+        "painted_wooden_cabinet.bin": {
+          "size": 78072,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/4k/painted_wooden_cabinet/painted_wooden_cabinet.bin",
+          "md5": "c86f9e483a0da1d5a9f68b08099a4166"
+        },
+        "textures/painted_wooden_cabinet_arm_2k.jpg": {
+          "size": 2228994,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/painted_wooden_cabinet/painted_wooden_cabinet_arm_2k.jpg",
+          "md5": "27f4f179af9fe7ed7ee3e3936a434b0c"
+        }
+      },
+      "size": 9253,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/2k/painted_wooden_cabinet/painted_wooden_cabinet_2k.gltf",
+      "md5": "eaa66611e904cc3e637e82f9b4c307f4"
+    },
+    "textures/painted_wooden_cabinet_nor_gl_2k.jpg": {
+      "size": 1864160,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/painted_wooden_cabinet/painted_wooden_cabinet_nor_gl_2k.jpg",
+      "md5": "9022a3a1d2f9e0506a46ee4d62f32d89"
+    },
+    "textures/painted_wooden_cabinet_diff_2k.jpg": {
+      "size": 2638553,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/painted_wooden_cabinet/painted_wooden_cabinet_diff_2k.jpg",
+      "md5": "a3d5e6f643b052e618212949f86ca81e"
+    },
+    "painted_wooden_cabinet.bin": {
+      "size": 78072,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/4k/painted_wooden_cabinet/painted_wooden_cabinet.bin",
+      "md5": "c86f9e483a0da1d5a9f68b08099a4166"
+    },
+    "textures/painted_wooden_cabinet_arm_2k.jpg": {
+      "size": 2228994,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/painted_wooden_cabinet/painted_wooden_cabinet_arm_2k.jpg",
+      "md5": "27f4f179af9fe7ed7ee3e3936a434b0c"
+    }
+  }
+}

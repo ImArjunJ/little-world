@@ -1,0 +1,49 @@
+{
+  "asset": "periwinkle_plant",
+  "page": "https://polyhaven.com/a/periwinkle_plant",
+  "license": "CC0-1.0",
+  "resolution": "1k",
+  "files": {
+    "periwinkle_plant.gltf": {
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/periwinkle_plant/periwinkle_plant_1k.gltf",
+      "md5": "7a736c4dc3906ea9dbed2baacf6c0b7d",
+      "size": 15189
+    },
+    "textures/periwinkle_plant_nor_gl_1k.jpg": {
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/periwinkle_plant/periwinkle_plant_nor_gl_1k.jpg",
+      "md5": "10e7ee6a4ccf292564237c2b31a5a4be",
+      "size": 418428
+    },
+    "textures/periwinkle_plant_diff_1k.jpg": {
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/periwinkle_plant/periwinkle_plant_diff_1k.jpg",
+      "md5": "32b2cba340cf12c976f0fb4c26cc5721",
+      "size": 349879
+    },
+    "textures/periwinkle_plant_arm_1k.jpg": {
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/periwinkle_plant/periwinkle_plant_arm_1k.jpg",
+      "md5": "3c9e09319e49893167ea0ab009b09526",
+      "size": 281673
+    },
+    "periwinkle_plant.bin": {
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/4k/periwinkle_plant/periwinkle_plant.bin",
+      "md5": "dd2ff3280b0d69c3b03fed2753a6ee84",
+      "size": 1859752
+    },
+    "textures/opacity.png": {
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/png/1k/periwinkle_plant/periwinkle_plant_opacity_1k.png",
+      "md5": "4386b4cf7a9cc7d79ad1db812b1d8e50",
+      "size": 86094
+    },
+    "textures/diffuse.png": {
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/png/1k/periwinkle_plant/periwinkle_plant_diff_1k.png",
+      "md5": "c6b08f25a8afef289506e58e914d7d02",
+      "size": 2407756
+    }
+  },
+  "cutout_materials": {
+    "periwinkle_plant": {
+      "opacity": "textures/opacity.png",
+      "color": "textures/diffuse.png"
+    }
+  }
+}

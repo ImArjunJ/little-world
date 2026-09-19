@@ -1,0 +1,55 @@
+{
+  "asset": "wooden_stool_01",
+  "page": "https://polyhaven.com/a/wooden_stool_01",
+  "license": "CC0-1.0",
+  "resolution": "2k",
+  "files": {
+    "wooden_stool_01.gltf": {
+      "include": {
+        "wooden_stool_01.bin": {
+          "size": 290924,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/wooden_stool_01/wooden_stool_01.bin",
+          "md5": "883e9617a69e90be7e19447dca83041c"
+        },
+        "textures/wooden_stool_01_rough_2k.jpg": {
+          "size": 794678,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/wooden_stool_01/wooden_stool_01_rough_2k.jpg",
+          "md5": "f22525d65238293e60ef7abc720cd5f5"
+        },
+        "textures/wooden_stool_01_diff_2k.jpg": {
+          "size": 908336,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/wooden_stool_01/wooden_stool_01_diff_2k.jpg",
+          "md5": "ee6190745468180c358e2f0c39da8871"
+        },
+        "textures/wooden_stool_01_nor_gl_2k.jpg": {
+          "size": 1161595,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/wooden_stool_01/wooden_stool_01_nor_gl_2k.jpg",
+          "md5": "cdaccb09cc95589de6de34a8e0e3f224"
+        }
+      },
+      "size": 2715,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/2k/wooden_stool_01/wooden_stool_01_2k.gltf",
+      "md5": "c02502685cece3b0418bea9e9f7c0861"
+    },
+    "wooden_stool_01.bin": {
+      "size": 290924,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/wooden_stool_01/wooden_stool_01.bin",
+      "md5": "883e9617a69e90be7e19447dca83041c"
+    },
+    "textures/wooden_stool_01_rough_2k.jpg": {
+      "size": 794678,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/wooden_stool_01/wooden_stool_01_rough_2k.jpg",
+      "md5": "f22525d65238293e60ef7abc720cd5f5"
+    },
+    "textures/wooden_stool_01_diff_2k.jpg": {
+      "size": 908336,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/wooden_stool_01/wooden_stool_01_diff_2k.jpg",
+      "md5": "ee6190745468180c358e2f0c39da8871"
+    },
+    "textures/wooden_stool_01_nor_gl_2k.jpg": {
+      "size": 1161595,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/wooden_stool_01/wooden_stool_01_nor_gl_2k.jpg",
+      "md5": "cdaccb09cc95589de6de34a8e0e3f224"
+    }
+  }
+}
