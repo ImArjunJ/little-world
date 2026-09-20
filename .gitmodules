@@ -1,0 +1,6 @@
+[submodule "sengine"]
+	path = vendor/sengine
+	url = https://github.com/ImArjunJ/sengine.git
+[submodule "simulates"]
+	path = vendor/simulates
+	url = https://github.com/ImArjunJ/simulates.git
