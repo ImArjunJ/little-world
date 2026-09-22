@@ -108,7 +108,7 @@ void user_interface::draw_greenhouse_journal(greenhouse& game) {
     set_mouse_cursor(cursor::arrow);
     if (is_mouse_button_pressed())
         keyboard_focus_ = false;
-    if (is_key_pressed(SDL_SCANCODE_TAB)) {
+    if (is_key_pressed(sengine::key_code::tab)) {
         keyboard_focus_ = true;
         focused_ = (focused_ + 1) % std::max(1, widget_count_);
     }
@@ -131,9 +131,9 @@ void user_interface::draw_greenhouse_journal(greenhouse& game) {
     float list_height = narrow ? (ph < 720 ? 69.f : 138.f) : ph - 190;
     int count = std::max(1, int(list_height / 69)),
         pages = std::max(1, (int(game.gardens().size()) + count - 1) / count);
-    if (is_key_pressed(SDL_SCANCODE_LEFT))
+    if (is_key_pressed(sengine::key_code::left))
         shelf_page_ = std::max(0, shelf_page_ - 1);
-    if (is_key_pressed(SDL_SCANCODE_RIGHT))
+    if (is_key_pressed(sengine::key_code::right))
         shelf_page_ = std::min(pages - 1, shelf_page_ + 1);
     if (check_collision_point_rec(mouse(), {x, y + 91, list_width, list_height}))
         shelf_page_ -= int(get_mouse_wheel_move());

@@ -1,81 +1,44 @@
 #include "render/fauna.hpp"
 #include "render/fauna_geometry.hpp"
-#include <filament/Engine.h>
-#include <filament/RenderableManager.h>
-#include <filament/Scene.h>
-#include <filament/TransformManager.h>
-#include <gltfio/AssetLoader.h>
-#include <gltfio/FilamentAsset.h>
-#include <gltfio/FilamentInstance.h>
-#include <stdexcept>
-#include <utils/EntityManager.h>
+#include <optional>
 #include <vector>
-
 namespace terrarium::render {
-using namespace filament;
 struct fauna_meshes::impl {
-    Engine& engine;
-    Scene& scene;
-    gltfio::AssetLoader& loader;
-    gltfio::FilamentAsset* asset;
+    sengine::scene& scene;
+    sengine::scene_asset shells;
+    fauna_geometry geometry;
     struct instance {
-        utils::Entity body;
-        gltfio::FilamentInstance* shell{};
+        sengine::scene_node body;
+        std::optional<sengine::scene_instance> shell;
         bool visible{};
     };
     struct pool {
         std::vector<instance> instances;
-        size_t used{}, previous{};
+        std::size_t used{}, previous{};
     };
     std::array<pool, 3> pools;
-    std::unique_ptr<fauna_geometry> geometry;
-    impl(Engine& e, Scene& s, gltfio::AssetLoader& l, gltfio::FilamentAsset* a)
-        : engine(e), scene(s), loader(l), asset(a) {}
-
     void add(pool& pool, species_kind species) {
-        gltfio::FilamentInstance* shell = nullptr;
-        if (species == species_kind::snail) {
-            shell = pool.instances.empty() ? asset->getInstance() : loader.createInstance(asset);
-            if (!shell)
-                throw std::runtime_error("Cannot create snail shell instance");
-        }
-        auto body = utils::EntityManager::get().create();
+        auto kind = unsigned(species);
+        auto body = create_mesh(scene, geometry.meshes[kind], geometry.materials[kind]);
+        std::optional<sengine::scene_instance> shell;
+        if (species == species_kind::snail)
+            shell = instantiate(scene, shells);
         pool.instances.push_back({body, shell});
-        engine.getTransformManager().create(body);
-        geometry->build(body, species);
     }
-    void show(instance& instance, bool visible) {
-        if (instance.visible == visible)
+    void show(instance& instance, bool enabled) {
+        if (instance.visible == enabled)
             return;
-        instance.visible = visible;
-        if (visible) {
-            scene.addEntity(instance.body);
-            if (instance.shell)
-                scene.addEntities(instance.shell->getEntities(), instance.shell->getEntityCount());
-        } else {
-            scene.remove(instance.body);
-            if (instance.shell)
-                scene.removeEntities(instance.shell->getEntities(), instance.shell->getEntityCount());
-        }
-    }
-    ~impl() {
-        for (auto& pool : pools)
-            for (auto& instance : pool.instances) {
-                scene.remove(instance.body);
-                engine.destroy(instance.body);
-                utils::EntityManager::get().destroy(instance.body);
-            }
-        scene.removeEntities(asset->getEntities(), asset->getEntityCount());
-        loader.destroyAsset(asset);
+        instance.visible = enabled;
+        visible(scene, instance.body, enabled);
+        if (instance.shell)
+            visible(scene, *instance.shell, enabled);
     }
 };
-fauna_meshes::fauna_meshes(Engine& engine, Scene& scene, gltfio::AssetLoader& loader,
-                           gltfio::FilamentAsset* asset, const std::filesystem::path& directory)
-    : impl_(std::make_unique<impl>(engine, scene, loader, asset)) {
-    impl_->geometry = std::make_unique<fauna_geometry>(engine, directory);
-}
+fauna_meshes::fauna_meshes(sengine::scene& scene, sengine::scene_asset shells,
+                           const std::filesystem::path& directory)
+    : impl_(std::make_unique<impl>(scene, shells, load_fauna(scene, directory))) {}
 fauna_meshes::~fauna_meshes() = default;
-void fauna_meshes::place(species_kind species, const math::mat4f& transform,
+void fauna_meshes::place(species_kind species, const sengine::mat4& transform,
                          const presentation::animal_weights& weights) {
     auto& p = *impl_;
     auto& pool = p.pools[unsigned(species)];
@@ -83,17 +46,15 @@ void fauna_meshes::place(species_kind species, const math::mat4f& transform,
         p.add(pool, species);
     auto& instance = pool.instances[pool.used++];
     p.show(instance, true);
-    auto& transforms = p.engine.getTransformManager();
-    transforms.setTransform(transforms.getInstance(instance.body), transform);
+    set_transform(p.scene, instance.body, transform);
     if (instance.shell)
-        transforms.setTransform(transforms.getInstance(instance.shell->getRoot()), transform);
-    auto& renderables = p.engine.getRenderableManager();
-    renderables.setMorphWeights(renderables.getInstance(instance.body), weights.data(), weights.size());
+        set_transform(p.scene, root(p.scene, *instance.shell), transform);
+    morph_weights(p.scene, instance.body, weights);
 }
 void fauna_meshes::finish() {
     auto& p = *impl_;
     for (auto& pool : p.pools) {
-        for (size_t i = pool.used; i < pool.previous; ++i)
+        for (std::size_t i = pool.used; i < pool.previous; ++i)
             p.show(pool.instances[i], false);
         pool.previous = pool.used;
         pool.used = 0;

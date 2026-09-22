@@ -9,7 +9,7 @@ class native_frontend {
     sengine::native_canvas canvas;
     user_interface ui;
     void start();
-    void event(const SDL_Event&, bool captured);
+    void event(const sengine::input_event&, bool captured);
     void draw(sengine::native_hud&, int width, int height, float dpi, double delta, sengine::hud_input,
               bool focused);
     bool walking() const { return ui.screen() == screen_kind::greenhouse && game_.can_walk(); }

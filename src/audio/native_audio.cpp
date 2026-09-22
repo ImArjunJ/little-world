@@ -1,33 +1,22 @@
 #include "native_audio.hpp"
 namespace terrarium {
-native_audio::native_audio(bool enabled) {
-    if (!enabled || !SDL_InitSubSystem(SDL_INIT_AUDIO))
-        return;
-    SDL_AudioSpec spec{SDL_AUDIO_F32, 2, ambient_mixer::sample_rate};
-    stream_ = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec, nullptr, nullptr);
-    if (stream_)
-        SDL_ResumeAudioStreamDevice(stream_);
-}
-native_audio::~native_audio() {
-    if (stream_)
-        SDL_DestroyAudioStream(stream_);
-}
+native_audio::native_audio(bool enabled) : stream_(enabled, {ambient_mixer::sample_rate, 2}) {}
 void native_audio::update(audio_environment environment, audio_settings settings, bool focused) {
     if (!stream_)
         return;
     if (!focused) {
-        SDL_ClearAudioStream(stream_);
+        stream_.clear();
         return;
     }
-    constexpr int block_bytes = sizeof(samples_);
-    int queued = SDL_GetAudioStreamQueued(stream_);
+    constexpr int block_samples = std::tuple_size_v<decltype(samples_)>;
+    int queued = stream_.queued_samples();
     if (queued < 0)
         return;
-    for (int i = 0; i < 3 && queued < block_bytes * 2; ++i) {
+    for (int i = 0; i < 3 && queued < block_samples * 2; ++i) {
         mixer_.render(samples_, environment, settings);
-        if (!SDL_PutAudioStreamData(stream_, samples_.data(), block_bytes))
+        if (!stream_.write(samples_))
             break;
-        queued += block_bytes;
+        queued += block_samples;
     }
 }
 }

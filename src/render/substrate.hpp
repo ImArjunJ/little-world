@@ -1,20 +1,14 @@
 #pragma once
 #include "ecosystem.hpp"
+#include "sengine/scene.hpp"
 #include <filesystem>
-#include <math/mat4.h>
 #include <memory>
-namespace filament {
-class Engine;
-class Scene;
-class MaterialInstance;
-}
 namespace terrarium::render {
 class substrate_meshes {
   public:
-    substrate_meshes(filament::Engine&, filament::Scene&, const filament::MaterialInstance& soil,
-                     const std::filesystem::path& water_material);
+    substrate_meshes(sengine::scene&, sengine::material_id soil, const std::filesystem::path& water_material);
     ~substrate_meshes();
-    void update(unsigned placement, const world_state*, const filament::math::mat4f& jar);
+    void update(unsigned placement, const world_state*, const sengine::mat4& jar);
 
   private:
     struct impl;

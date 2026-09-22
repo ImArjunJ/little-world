@@ -2,7 +2,7 @@
 #include "greenhouse.hpp"
 #include "sengine/camera_path.hpp"
 
-#include <SDL3/SDL.h>
+#include "sengine/events.hpp"
 #include <algorithm>
 #include <utility>
 namespace terrarium {
@@ -10,7 +10,7 @@ class greenhouse_controls {
   public:
     greenhouse_controls(greenhouse& game, sengine::explorer& explorer, const sengine::landscape& land)
         : game_(game), explorer_(explorer), land_(land) {}
-    void event(const SDL_Event&, bool captured);
+    void event(const sengine::input_event&, bool captured);
     void advance(double seconds, bool reduced_motion = false);
     void pan(float right, float forward);
     sengine::camera_pose camera() const;

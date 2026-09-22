@@ -49,16 +49,16 @@ void greenhouse_controls::open_journal() {
         sengine::stop(explorer_);
     }
 }
-void greenhouse_controls::event(const SDL_Event& e, bool captured) {
+void greenhouse_controls::event(const sengine::input_event& e, bool captured) {
     auto mode = game_.mode();
-    if (e.type == SDL_EVENT_KEY_DOWN && !e.key.repeat) {
-        auto key = e.key.scancode;
-        if (key == SDL_SCANCODE_ESCAPE) {
+    if (e.type == sengine::event_type::key_down && !e.key.repeat) {
+        auto key = e.key.code;
+        if (key == sengine::key_code::escape) {
             game_.leave();
             return;
         }
         if (mode == greenhouse_mode::carry) {
-            if (key == SDL_SCANCODE_E && captured) {
+            if (key == sengine::key_code::e && captured) {
                 int p = game_.target(sengine::camera(explorer_, false), land_, true);
                 if (p >= 0) {
                     game_.place(p);
@@ -68,15 +68,15 @@ void greenhouse_controls::event(const SDL_Event& e, bool captured) {
             return;
         }
         if (mode == greenhouse_mode::explore) {
-            if (key == SDL_SCANCODE_J) {
+            if (key == sengine::key_code::j) {
                 open_journal();
                 return;
             }
-            if (captured && (key == SDL_SCANCODE_E || key == SDL_SCANCODE_F)) {
+            if (captured && (key == sengine::key_code::e || key == sengine::key_code::f)) {
                 int place = game_.target(sengine::camera(explorer_, false), land_, false);
                 if (auto* g = game_.at(place)) {
                     auto id = g->id;
-                    if (key == SDL_SCANCODE_E && explorer_.grounded)
+                    if (key == sengine::key_code::e && explorer_.grounded)
                         enter_editor(id);
                     else if (explorer_.grounded) {
                         auto p = greenhouse::spots()[place].position;
@@ -92,19 +92,19 @@ void greenhouse_controls::event(const SDL_Event& e, bool captured) {
             }
         }
     }
-    if (e.type == SDL_EVENT_MOUSE_WHEEL) {
+    if (e.type == sengine::event_type::mouse_wheel) {
         if (mode == greenhouse_mode::carry)
             game_.rotate(e.wheel.y * .16f);
         else if (mode == greenhouse_mode::editor)
             target_zoom_ = std::clamp(target_zoom_ - e.wheel.y * .06f, .16f, 2.4f);
     }
-    if (e.type == SDL_EVENT_MOUSE_MOTION && mode == greenhouse_mode::editor &&
-        (e.motion.state & SDL_BUTTON_MMASK))
-        pan(-e.motion.xrel * .012f * zoom_, e.motion.yrel * .012f * zoom_);
-    if (e.type == SDL_EVENT_MOUSE_MOTION && mode == greenhouse_mode::editor &&
-        (e.motion.state & SDL_BUTTON_RMASK)) {
-        orbit_ -= e.motion.xrel * .005f;
-        elevation_ = std::clamp(elevation_ + e.motion.yrel * .004f, .15f, 1.52f);
+    if (e.type == sengine::event_type::mouse_motion && mode == greenhouse_mode::editor &&
+        (e.motion.buttons & sengine::middle_button))
+        pan(-e.motion.dx * .012f * zoom_, e.motion.dy * .012f * zoom_);
+    if (e.type == sengine::event_type::mouse_motion && mode == greenhouse_mode::editor &&
+        (e.motion.buttons & sengine::right_button)) {
+        orbit_ -= e.motion.dx * .005f;
+        elevation_ = std::clamp(elevation_ + e.motion.dy * .004f, .15f, 1.52f);
     }
 }
 float greenhouse_controls::camera_padding() const {

@@ -216,7 +216,7 @@ bool user_interface::button(sengine::drawing::rect r, const std::string& value, 
         focused_ = id;
         return true;
     }
-    return focused && is_key_pressed(SDL_SCANCODE_RETURN) && !editing_;
+    return focused && is_key_pressed(sengine::key_code::enter) && !editing_;
 }
 void user_interface::icon(int id, sengine::drawing::point2 p, float s, sengine::drawing::color c) {
     float u = s / 32;
@@ -377,7 +377,7 @@ bool user_interface::medallion(sengine::drawing::rect r, int symbol, const std::
         focused_ = id;
         return true;
     }
-    return focused && is_key_pressed(SDL_SCANCODE_RETURN) && !editing_;
+    return focused && is_key_pressed(sengine::key_code::enter) && !editing_;
 }
 void user_interface::slider(sengine::drawing::rect r, const std::string& title, float& value, float low,
                             float high, const std::string& unit) {
@@ -402,9 +402,9 @@ void user_interface::slider(sengine::drawing::rect r, const std::string& title, 
     if (active_slider_ == id && is_mouse_button_down())
         value = low + std::clamp((mouse().x - r.x) / r.width, 0.f, 1.f) * (high - low);
     if (focus) {
-        if (is_key_pressed(SDL_SCANCODE_LEFT))
+        if (is_key_pressed(sengine::key_code::left))
             value = std::max(low, value - (high - low) / 50);
-        if (is_key_pressed(SDL_SCANCODE_RIGHT))
+        if (is_key_pressed(sengine::key_code::right))
             value = std::min(high, value + (high - low) / 50);
     }
     ratio = std::clamp((value - low) / (high - low), 0.f, 1.f);
@@ -572,18 +572,18 @@ void user_interface::creature_panel(world_state& world, greenhouse_controls& cam
                     name_buffer_.append(encoded, bytes);
             }
         }
-        if (is_key_pressed(SDL_SCANCODE_BACKSPACE) && !name_buffer_.empty()) {
+        if (is_key_pressed(sengine::key_code::backspace) && !name_buffer_.empty()) {
             auto i = name_buffer_.size() - 1;
             while (i > 0 && (static_cast<unsigned char>(name_buffer_[i]) & 0xc0) == 0x80)
                 --i;
             name_buffer_.erase(i);
         }
-        if (is_key_pressed(SDL_SCANCODE_RETURN)) {
+        if (is_key_pressed(sengine::key_code::enter)) {
             world.rename(selected, name_buffer_);
             editing_ = false;
             toast("A name to remember.");
         }
-        if (is_key_pressed(SDL_SCANCODE_ESCAPE))
+        if (is_key_pressed(sengine::key_code::escape))
             editing_ = false;
         text(name_buffer_ + (static_cast<int>(get_time() * 2) % 2 ? "|" : ""), x, y + 217, 25, ink, true);
         draw_line_ex({x, y + 251}, {x + w - 44, y + 251}, 1, brass);
@@ -688,11 +688,12 @@ void user_interface::draw(world_state& world, greenhouse_controls& camera, doubl
         active_slider_ = -1;
     if (is_mouse_button_pressed())
         keyboard_focus_ = false;
-    if (is_key_pressed(SDL_SCANCODE_TAB) && !editing_) {
+    if (is_key_pressed(sengine::key_code::tab) && !editing_) {
         keyboard_focus_ = true;
-        focused_ = (focused_ + (is_key_down(SDL_SCANCODE_LSHIFT) ? std::max(1, widget_count_) - 1 : 1) +
-                    std::max(1, widget_count_)) %
-                   std::max(1, widget_count_);
+        focused_ =
+            (focused_ + (is_key_down(sengine::key_code::left_shift) ? std::max(1, widget_count_) - 1 : 1) +
+             std::max(1, widget_count_)) %
+            std::max(1, widget_count_);
     }
     float w = width(), h = height();
 
@@ -710,7 +711,7 @@ void user_interface::draw(world_state& world, greenhouse_controls& camera, doubl
     text(title, 26, 20, title_size, cream, true, true);
     text(std::format("{}  /  Day {}", world.season(), static_cast<int>(world.day()) + 1), 29, 65, 15, cream,
          false, true);
-    if (!editing_ && is_key_pressed(SDL_SCANCODE_V))
+    if (!editing_ && is_key_pressed(sengine::key_code::v))
         environment_view = (environment_view + 1) % 3;
     if (environment_view) {
         sengine::drawing::rect key{26, 122, 250, 57};
@@ -734,18 +735,18 @@ void user_interface::draw(world_state& world, greenhouse_controls& camera, doubl
     };
     open(ui_control::soil_cell, panel_kind::soil_cell, 1, "The living soil  [N]");
     open(ui_control::weather, panel_kind::weather, 8, "Weather  [C]");
-    if (!editing_ && is_key_pressed(SDL_SCANCODE_N)) {
+    if (!editing_ && is_key_pressed(sengine::key_code::n)) {
         panel_ = panel_ == panel_kind::soil_cell ? panel_kind::none : panel_kind::soil_cell;
         scroll_ = 0;
     }
     open(ui_control::journal, panel_kind::journal, 9, "Field journal  [J]");
     if (medallion(control_bounds(ui_control::return_to_world), 11, "Return to the greenhouse  [Esc]"))
         request = ui_request::greenhouse;
-    if (!editing_ && is_key_pressed(SDL_SCANCODE_C)) {
+    if (!editing_ && is_key_pressed(sengine::key_code::c)) {
         panel_ = panel_ == panel_kind::weather ? panel_kind::none : panel_kind::weather;
         scroll_ = 0;
     }
-    if (!editing_ && is_key_pressed(SDL_SCANCODE_J)) {
+    if (!editing_ && is_key_pressed(sengine::key_code::j)) {
         panel_ = panel_ == panel_kind::journal ? panel_kind::none : panel_kind::journal;
         scroll_ = 0;
     }
@@ -773,7 +774,7 @@ void user_interface::draw(world_state& world, greenhouse_controls& camera, doubl
         text(std::format("{}x", static_cast<int>(speeds[i])), r.x + 3, r.y + 8, 14,
              active ? rgb(255, 238, 180) : cream, false, true);
         if ((hover && is_mouse_button_pressed()) ||
-            (keyboard_focus_ && focused_ == id && is_key_pressed(SDL_SCANCODE_RETURN)))
+            (keyboard_focus_ && focused_ == id && is_key_pressed(sengine::key_code::enter)))
             speed = speeds[i];
     }
     if (medallion(control_bounds(ui_control::overview), 11, "Return to the whole garden [Home]")) {

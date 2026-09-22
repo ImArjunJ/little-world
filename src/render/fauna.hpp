@@ -1,24 +1,14 @@
 #pragma once
 #include "animal_motion.hpp"
+#include "sengine/scene.hpp"
 #include <filesystem>
-#include <math/mat4.h>
 #include <memory>
-
-namespace filament {
-class Engine;
-class Scene;
-namespace gltfio {
-class AssetLoader;
-class FilamentAsset;
-}
-}
 namespace terrarium::render {
 class fauna_meshes {
   public:
-    fauna_meshes(filament::Engine&, filament::Scene&, filament::gltfio::AssetLoader&,
-                 filament::gltfio::FilamentAsset*, const std::filesystem::path& directory);
+    fauna_meshes(sengine::scene&, sengine::scene_asset shells, const std::filesystem::path& directory);
     ~fauna_meshes();
-    void place(species_kind, const filament::math::mat4f&, const presentation::animal_weights&);
+    void place(species_kind, const sengine::mat4&, const presentation::animal_weights&);
     void finish();
 
   private:

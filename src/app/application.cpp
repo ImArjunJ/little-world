@@ -2,13 +2,12 @@
 #include "greenhouse_controls.hpp"
 #include "native_audio.hpp"
 #include "native_frontend.hpp"
-#include "render/filament_scene.hpp"
+#include "render/garden_scene.hpp"
+#include "sengine/events.hpp"
 #include "sengine/pointer_capture.hpp"
-#include <SDL3/SDL.h>
 #include <algorithm>
 #include <chrono>
 #include <cmath>
-#include <cstdlib>
 #include <stdexcept>
 #include <string>
 
@@ -16,44 +15,31 @@
 namespace terrarium {
 void run_game() {
     sengine::window display("Little World — greenhouse", 1440, 900);
-    auto* window = display.handle();
     const auto data = sengine::window::executable_directory() / "data";
-    render::filament_scene renderer(display.native(), data / "scene/greenhouse.gltf",
-                                    render::render_quality::high, display.shared_context());
-    display.release_context();
+    render::garden_scene renderer(display, data / "scene/greenhouse.gltf", render::render_quality::high);
     auto landscape = sengine::load_landscape(data / "scene/landscape.bin");
     auto explorer = sengine::make_explorer(landscape, {2.95f, 0, 2.6f}, -.48f, -.17f);
     footstep_audio footsteps(true, data / "audio/footsteps");
-    std::filesystem::path profile;
-    const char *xdg = std::getenv("XDG_DATA_HOME"), *home = std::getenv("HOME");
-#ifdef __APPLE__
-    profile = xdg    ? std::filesystem::path(xdg)
-              : home ? std::filesystem::path(home) / "Library/Application Support"
-                     : std::filesystem::current_path();
-#else
-    profile = xdg    ? std::filesystem::path(xdg)
-              : home ? std::filesystem::path(home) / ".local/share"
-                     : std::filesystem::current_path();
-#endif
-    profile /= "little-world";
+    const auto profile = sengine::user_data_directory("little-world");
     greenhouse game(profile);
     greenhouse_controls interface(game, explorer, landscape);
     native_frontend frontend(game, interface, explorer, profile);
+    frontend.canvas.display = &display;
     frontend.start();
     native_audio ambience(true);
     bool fullscreen = false;
     bool running = true, camera_motion = true, text_input = false;
     sengine::pointer_capture pointer;
-    sengine::focus(pointer, SDL_GetWindowFlags(window) & SDL_WINDOW_INPUT_FOCUS);
+    sengine::focus(pointer, display.metrics().focused);
     sengine::request_capture(pointer, frontend.walking());
     auto sync_pointer = [&] {
-        if (SDL_GetWindowRelativeMouseMode(window) == sengine::captured(pointer))
+        if (display.captured() == sengine::captured(pointer))
             return;
         sengine::stop(explorer);
         footsteps.clear();
-        if (!SDL_SetWindowRelativeMouseMode(window, sengine::captured(pointer))) {
+        if (!display.capture(sengine::captured(pointer))) {
             pointer.failed = true;
-            frontend.ui.toast(SDL_GetError());
+            frontend.ui.toast(display.error());
         }
     };
     sync_pointer();
@@ -62,56 +48,59 @@ void run_game() {
         bool jump_pressed = false;
         sengine::hud_input hud_input;
         frontend.canvas.begin_events();
-        SDL_Event event;
-        while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_EVENT_QUIT || (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED &&
-                                                 event.window.windowID == SDL_GetWindowID(window))) {
+        sengine::input_event event;
+        while (display.poll(event)) {
+            if (event.type == sengine::event_type::quit || event.type == sengine::event_type::close) {
                 if (game.save() && frontend.save_preferences())
                     running = false;
                 else if (!game.error().empty())
                     frontend.ui.toast(game.error());
             }
-            if (event.type == SDL_EVENT_WINDOW_FOCUS_LOST) {
+            if (event.type == sengine::event_type::focus_lost) {
                 sengine::focus(pointer, false);
                 sengine::stop(explorer);
                 footsteps.clear();
                 sync_pointer();
             }
-            if (event.type == SDL_EVENT_WINDOW_FOCUS_GAINED) {
+            if (event.type == sengine::event_type::focus_gained) {
                 sengine::focus(pointer, true);
                 sync_pointer();
             }
             const bool input_event =
-                event.type == SDL_EVENT_KEY_DOWN || event.type == SDL_EVENT_KEY_UP ||
-                event.type == SDL_EVENT_TEXT_INPUT || event.type == SDL_EVENT_MOUSE_MOTION ||
-                event.type == SDL_EVENT_MOUSE_BUTTON_DOWN || event.type == SDL_EVENT_MOUSE_BUTTON_UP ||
-                event.type == SDL_EVENT_MOUSE_WHEEL;
-            if (input_event && !(SDL_GetWindowFlags(window) & SDL_WINDOW_INPUT_FOCUS))
+                event.type == sengine::event_type::key_down || event.type == sengine::event_type::key_up ||
+                event.type == sengine::event_type::text_input ||
+                event.type == sengine::event_type::mouse_motion ||
+                event.type == sengine::event_type::mouse_down ||
+                event.type == sengine::event_type::mouse_up || event.type == sengine::event_type::mouse_wheel;
+            if (input_event && !(display.metrics().focused))
                 continue;
-            if (((event.type == SDL_EVENT_KEY_DOWN && !event.key.repeat) ||
-                 event.type == SDL_EVENT_MOUSE_BUTTON_DOWN))
+            if (((event.type == sengine::event_type::key_down && !event.key.repeat) ||
+                 event.type == sengine::event_type::mouse_down))
                 pointer.failed = false;
-            if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN && event.button.button == SDL_BUTTON_LEFT)
+            if (event.type == sengine::event_type::mouse_down &&
+                event.button.button == sengine::mouse_button::left)
                 hud_input.pressed = true;
-            if (event.type == SDL_EVENT_MOUSE_BUTTON_UP && event.button.button == SDL_BUTTON_LEFT)
+            if (event.type == sengine::event_type::mouse_up &&
+                event.button.button == sengine::mouse_button::left)
                 hud_input.released = true;
-            if (event.type == SDL_EVENT_MOUSE_WHEEL)
+            if (event.type == sengine::event_type::mouse_wheel)
                 hud_input.wheel += event.wheel.y;
             frontend.event(event, sengine::captured(pointer));
-            if (event.type == SDL_EVENT_KEY_DOWN && !event.key.repeat && !frontend.typing()) {
-                if (event.key.scancode == SDL_SCANCODE_SPACE && sengine::captured(pointer) &&
+            if (event.type == sengine::event_type::key_down && !event.key.repeat && !frontend.typing()) {
+                if (event.key.code == sengine::key_code::space && sengine::captured(pointer) &&
                     game.mode() == terrarium::greenhouse_mode::explore && frontend.walking())
                     jump_pressed = true;
-                if (event.key.scancode == SDL_SCANCODE_M &&
+                if (event.key.code == sengine::key_code::m &&
                     game.mode() == terrarium::greenhouse_mode::explore && frontend.walking())
                     frontend.ui.reduced_motion = !frontend.ui.reduced_motion;
-                if (event.key.scancode == SDL_SCANCODE_HOME &&
+                if (event.key.code == sengine::key_code::home &&
                     game.mode() == terrarium::greenhouse_mode::explore && frontend.walking())
                     sengine::relocate(explorer, {2.95f, 0, 2.6f}, -.48f, -.17f);
             }
-            if (event.type == SDL_EVENT_MOUSE_MOTION && sengine::captured(pointer) && frontend.walking()) {
+            if (event.type == sengine::event_type::mouse_motion && sengine::captured(pointer) &&
+                frontend.walking()) {
                 auto before = sengine::camera(explorer, false);
-                sengine::look(explorer, event.motion.xrel * .0025f, -event.motion.yrel * .0025f);
+                sengine::look(explorer, event.motion.dx * .0025f, -event.motion.dy * .0025f);
                 if (!game.carry_clear(sengine::camera(explorer, false), landscape))
                     sengine::relocate(explorer, before.feet, before.yaw, std::asin(before.direction.y));
             }
@@ -119,15 +108,16 @@ void run_game() {
         const auto now = std::chrono::steady_clock::now();
         double elapsed = std::chrono::duration<double>(now - previous).count();
         previous = now;
-        const bool focused = SDL_GetWindowFlags(window) & SDL_WINDOW_INPUT_FOCUS;
-        const auto* keys = SDL_GetKeyboardState(nullptr);
+        const bool focused = display.metrics().focused;
+        const auto keys = display.keys();
         if (sengine::captured(pointer) && focused && frontend.walking()) {
             auto before = sengine::camera(explorer, false);
             sengine::advance(
                 explorer, std::min(.1, elapsed),
-                game.locomotion({float(keys[SDL_SCANCODE_W]) - float(keys[SDL_SCANCODE_S]),
-                                 float(keys[SDL_SCANCODE_D]) - float(keys[SDL_SCANCODE_A]),
-                                 keys[SDL_SCANCODE_LSHIFT], keys[SDL_SCANCODE_LCTRL], jump_pressed}));
+                game.locomotion({float(keys[sengine::key_code::w]) - float(keys[sengine::key_code::s]),
+                                 float(keys[sengine::key_code::d]) - float(keys[sengine::key_code::a]),
+                                 keys[sengine::key_code::left_shift], keys[sengine::key_code::left_control],
+                                 jump_pressed}));
             if (!game.carry_clear(sengine::camera(explorer, false), landscape))
                 sengine::relocate(explorer, before.feet, before.yaw, std::asin(before.direction.y));
         }
@@ -144,22 +134,23 @@ void run_game() {
 
         if (focused)
             game.advance(elapsed, frontend.living());
-        int width = 0, height = 0, lw = 0, lh = 0;
-        SDL_GetWindowSizeInPixels(window, &width, &height);
-        SDL_GetWindowSize(window, &lw, &lh);
-        if (SDL_GetWindowFlags(window) & SDL_WINDOW_MINIMIZED) {
-            SDL_Delay(25);
+        const auto metrics = display.metrics();
+        const auto [width, height, lw, lh] =
+            std::array{metrics.width, metrics.height, metrics.logical_width, metrics.logical_height};
+        if (metrics.minimized || !width || !height) {
+            sengine::sleep_for(.025);
             continue;
         }
-        float mx, my;
-        auto buttons = SDL_GetMouseState(&mx, &my);
+        const auto mouse = display.pointer();
+        const auto mx = mouse.x, my = mouse.y;
+        const auto buttons = mouse.buttons;
         hud_input.x = mx * width / std::max(1, lw);
         hud_input.y = my * height / std::max(1, lh);
-        hud_input.down = buttons & SDL_BUTTON_LMASK;
+        hud_input.down = buttons & sengine::left_button;
         if (!focused) {
             hud_input = {};
         }
-        float dpi = std::max(SDL_GetWindowDisplayScale(window), float(width) / std::max(1, lw));
+        float dpi = metrics.scale;
         interface.viewport(float(width) / height);
         auto& hud = renderer.hud();
         hud.begin(width, height, 1.f);
@@ -167,17 +158,14 @@ void run_game() {
 
         if (frontend.typing() != text_input) {
             text_input = frontend.typing();
-            if (text_input)
-                SDL_StartTextInput(window);
-            else
-                SDL_StopTextInput(window);
+            display.text_input(text_input);
         }
         if (frontend.ui.borderless != fullscreen) {
-            if (SDL_SetWindowFullscreen(window, frontend.ui.borderless))
+            if (display.fullscreen(frontend.ui.borderless))
                 fullscreen = frontend.ui.borderless;
             else {
                 frontend.ui.borderless = fullscreen;
-                frontend.ui.toast(SDL_GetError());
+                frontend.ui.toast(display.error());
             }
         }
         camera_motion = !frontend.ui.reduced_motion;
@@ -232,12 +220,11 @@ void run_game() {
             frontend.ui.toast(error.what());
             frontend.photograph.clear();
         }
-        const auto* display = SDL_GetCurrentDisplayMode(SDL_GetDisplayForWindow(window));
-        double hz = display ? std::clamp(double(display->refresh_rate), 30.0, 144.0) : 60.0;
+        double hz = std::clamp(metrics.refresh_rate, 30.0, 144.0);
         double remaining =
             1.0 / hz - std::chrono::duration<double>(std::chrono::steady_clock::now() - now).count();
         if (remaining > 0)
-            SDL_DelayPrecise(Uint64(remaining * 1e9));
+            sengine::sleep_for(remaining);
     }
     frontend.save_preferences();
     if (!game.save())

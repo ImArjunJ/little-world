@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.24)
 project(little_world VERSION 0.5.0 LANGUAGES CXX)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(filament_root "${CMAKE_CURRENT_SOURCE_DIR}/vendor/sengine/.deps/filament" CACHE PATH "Filament SDK")
 add_subdirectory(vendor/sengine EXCLUDE_FROM_ALL)
 add_subdirectory(vendor/simulates EXCLUDE_FROM_ALL)
 

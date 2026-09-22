@@ -83,15 +83,15 @@ void native_frontend::start() {
     ui.show(ui.setup_seen ? screen_kind::home : screen_kind::setup);
     initial_setup_ = !ui.setup_seen;
 }
-void native_frontend::event(const SDL_Event& e, bool captured) {
+void native_frontend::event(const sengine::input_event& e, bool captured) {
     canvas.event(e);
-    if (e.type == SDL_EVENT_KEY_DOWN && !e.key.repeat && e.key.scancode == SDL_SCANCODE_F11 &&
+    if (e.type == sengine::event_type::key_down && !e.key.repeat && e.key.code == sengine::key_code::f11 &&
         !game_.holding())
         ui.borderless = !ui.borderless;
     if (ui.screen() == screen_kind::greenhouse) {
-        if (game_.mode() == greenhouse_mode::explore && e.type == SDL_EVENT_KEY_DOWN && !e.key.repeat &&
-            e.key.scancode == SDL_SCANCODE_ESCAPE) {
-            canvas.pressed[SDL_SCANCODE_ESCAPE] = false;
+        if (game_.mode() == greenhouse_mode::explore && e.type == sengine::event_type::key_down &&
+            !e.key.repeat && e.key.code == sengine::key_code::escape) {
+            canvas.pressed[sengine::key_code::escape] = false;
             ui.show(screen_kind::options);
             sengine::stop(explorer_);
             return;
@@ -100,16 +100,18 @@ void native_frontend::event(const SDL_Event& e, bool captured) {
         if (auto notice = controls_.take_notice(); !notice.empty())
             ui.toast(notice);
     } else if (ui.screen() == screen_kind::habitat && !ui.typing()) {
-        if (e.type == SDL_EVENT_KEY_DOWN && !e.key.repeat && e.key.scancode == SDL_SCANCODE_ESCAPE) {
-            canvas.pressed[SDL_SCANCODE_ESCAPE] = false;
+        if (e.type == sengine::event_type::key_down && !e.key.repeat &&
+            e.key.code == sengine::key_code::escape) {
+            canvas.pressed[sengine::key_code::escape] = false;
             return_to_greenhouse();
             return;
         }
 
-        if (e.type == SDL_EVENT_MOUSE_MOTION || e.type == SDL_EVENT_MOUSE_WHEEL) {
+        if (e.type == sengine::event_type::mouse_motion || e.type == sengine::event_type::mouse_wheel) {
             if (ui.over_garden(get_mouse_position())) {
                 controls_.event(e, false);
-                if (e.type == SDL_EVENT_MOUSE_MOTION && (e.motion.state & SDL_BUTTON_MMASK))
+                if (e.type == sengine::event_type::mouse_motion &&
+                    (e.motion.buttons & sengine::middle_button))
                     ui.followed = 0;
             }
         }
@@ -184,43 +186,43 @@ void native_frontend::return_to_greenhouse() {
 void native_frontend::tend(world_state& world, double dt) {
     if (ui.typing())
         return;
-    auto key = [&](SDL_Scancode k) { return canvas.pressed[k]; };
-    if (key(SDL_SCANCODE_B)) {
+    auto key = [&](sengine::key_code k) { return canvas.pressed[k]; };
+    if (key(sengine::key_code::b)) {
         return_to_greenhouse();
         return;
     }
-    if (key(SDL_SCANCODE_SPACE))
+    if (key(sengine::key_code::space))
         ui.paused = !ui.paused;
-    if (key(SDL_SCANCODE_R))
+    if (key(sengine::key_code::r))
         world.rain();
-    if (key(SDL_SCANCODE_H)) {
+    if (key(sengine::key_code::h)) {
         ui.observation = !ui.observation;
         ui.tool = garden_tool::inspect;
     }
-    if (key(SDL_SCANCODE_M))
+    if (key(sengine::key_code::m))
         ui.audio.enabled = !ui.audio.enabled;
-    if (key(SDL_SCANCODE_HOME)) {
+    if (key(sengine::key_code::home)) {
         controls_.reset_camera();
         ui.followed = 0;
     }
-    if (key(SDL_SCANCODE_F) && world.creature(ui.selected)) {
+    if (key(sengine::key_code::f) && world.creature(ui.selected)) {
         ui.followed = ui.followed == ui.selected ? 0 : ui.selected;
     }
-    if (key(SDL_SCANCODE_P))
+    if (key(sengine::key_code::p))
         ui.request = ui_request::photo;
-    if (key(SDL_SCANCODE_F5))
+    if (key(sengine::key_code::f5))
         ui.request = ui_request::save;
-    if (key(SDL_SCANCODE_F9))
+    if (key(sengine::key_code::f9))
         ui.request = ui_request::restore;
     for (int i = 0; i < 8; ++i)
-        if (key(SDL_Scancode(SDL_SCANCODE_1 + i)))
+        if (key(sengine::key_code(int(sengine::key_code::digit_1) + i)))
             ui.tool = garden_tool(i);
-    if (canvas.down[SDL_SCANCODE_Q])
+    if (canvas.down[sengine::key_code::q])
         controls_.rotate_camera(float(-dt));
-    if (canvas.down[SDL_SCANCODE_E])
+    if (canvas.down[sengine::key_code::e])
         controls_.rotate_camera(float(dt));
-    float right = float(canvas.down[SDL_SCANCODE_D]) - float(canvas.down[SDL_SCANCODE_A]);
-    float forward = float(canvas.down[SDL_SCANCODE_W]) - float(canvas.down[SDL_SCANCODE_S]);
+    float right = float(canvas.down[sengine::key_code::d]) - float(canvas.down[sengine::key_code::a]);
+    float forward = float(canvas.down[sengine::key_code::w]) - float(canvas.down[sengine::key_code::s]);
     if (right || forward) {
         float step = float(std::min(.1, dt)) * 3 / std::max(1.f, std::hypot(right, forward));
         controls_.pan(right * step, forward * step);

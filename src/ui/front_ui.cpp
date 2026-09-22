@@ -163,7 +163,7 @@ void user_interface::construction(sengine::drawing::rect page, float time) {
             x, y + 326, cw, 18, faded);
     }
     const float footer = page.y + page.height - 65;
-    if (button({x, footer, 110, 38}, "Back") || is_key_pressed(SDL_SCANCODE_ESCAPE)) {
+    if (button({x, footer, 110, 38}, "Back") || is_key_pressed(sengine::key_code::escape)) {
         if (construction_step_ == 0)
             show(screen_kind::new_garden);
         else {
@@ -191,13 +191,14 @@ void user_interface::name_input(sengine::drawing::rect r) {
             draft_name.append(utf, size);
         }
     }
-    if (is_key_pressed(SDL_SCANCODE_BACKSPACE) && !draft_name.empty()) {
+    if (is_key_pressed(sengine::key_code::backspace) && !draft_name.empty()) {
         auto i = draft_name.size() - 1;
         while (i > 0 && (static_cast<unsigned char>(draft_name[i]) & 0xc0) == 0x80)
             --i;
         draft_name.erase(i);
     }
-    if ((is_key_down(SDL_SCANCODE_LCTRL) || is_key_down(SDL_SCANCODE_LGUI)) && is_key_pressed(SDL_SCANCODE_A))
+    if ((is_key_down(sengine::key_code::left_control) || is_key_down(sengine::key_code::left_super)) &&
+        is_key_pressed(sengine::key_code::a))
         draft_name.clear();
     std::string visible = draft_name;
     while (measure_text_ex(display_, visible.c_str(), 30, 0).x > r.width - 28 && !visible.empty()) {
@@ -342,11 +343,12 @@ void user_interface::draw_front(const std::vector<garden_entry>& entries) {
         keyboard_focus_ = false;
     if (is_mouse_button_released())
         active_slider_ = -1;
-    if (is_key_pressed(SDL_SCANCODE_TAB)) {
+    if (is_key_pressed(sengine::key_code::tab)) {
         keyboard_focus_ = true;
-        focused_ = (focused_ + (is_key_down(SDL_SCANCODE_LSHIFT) ? std::max(1, widget_count_) - 1 : 1) +
-                    std::max(1, widget_count_)) %
-                   std::max(1, widget_count_);
+        focused_ =
+            (focused_ + (is_key_down(sengine::key_code::left_shift) ? std::max(1, widget_count_) - 1 : 1) +
+             std::max(1, widget_count_)) %
+            std::max(1, widget_count_);
     }
     float w = width(), h = height(),
           t = reduced_motion ? 5.f : static_cast<float>(get_time() - screen_since_);
@@ -448,7 +450,7 @@ void user_interface::draw_front(const std::vector<garden_entry>& entries) {
                     x + 12, y + 308, cw - 24, 18, faded);
             float button_width = (cw - 36) / 2;
             if (button({x + 12, page.y + page.height - 96, button_width, 44}, "Keep garden", true) ||
-                is_key_pressed(SDL_SCANCODE_ESCAPE))
+                is_key_pressed(sengine::key_code::escape))
                 show(screen_kind::gardens);
             else if (button({x + 24 + button_width, page.y + page.height - 96, button_width, 44},
                             "Delete permanently"))
@@ -462,7 +464,7 @@ void user_interface::draw_front(const std::vector<garden_entry>& entries) {
             text("Type a name / Ctrl+A to start over", x + 12, y + 353, 14, faded);
             if (button({x + 12, y + 401, cw - 24, 46}, renaming_ ? "Keep this name" : "Choose a vessel",
                        true) ||
-                is_key_pressed(SDL_SCANCODE_RETURN)) {
+                is_key_pressed(sengine::key_code::enter)) {
                 if (renaming_)
                     request = ui_request::rename;
                 else
@@ -525,7 +527,7 @@ void user_interface::draw_front(const std::vector<garden_entry>& entries) {
             showing != screen_kind::construction &&
             (button({x, page.y + page.height - 65, showing == screen_kind::welcome ? 140.f : 105.f, 38},
                     showing == screen_kind::welcome ? "Skip introduction" : "Back") ||
-             is_key_pressed(SDL_SCANCODE_ESCAPE))) {
+             is_key_pressed(sengine::key_code::escape))) {
             if (showing == screen_kind::welcome)
                 request = ui_request::finish_welcome;
             else if (showing == screen_kind::new_garden)
@@ -555,7 +557,7 @@ void user_interface::draw_photo() {
     set_mouse_cursor(cursor::arrow);
     if (is_mouse_button_pressed())
         keyboard_focus_ = false;
-    if (is_key_pressed(SDL_SCANCODE_TAB)) {
+    if (is_key_pressed(sengine::key_code::tab)) {
         keyboard_focus_ = true;
         focused_ = (focused_ + 1) % 2;
     }
@@ -565,7 +567,7 @@ void user_interface::draw_photo() {
     text("Time is resting. Keep this view without the field kit.", 40, h - 86, 14, faded);
     if (button({w - 265, h - 67, 125, 42}, "Keep photograph", true))
         request = ui_request::export_photo;
-    if (button({w - 127, h - 67, 88, 42}, "Return") || is_key_pressed(SDL_SCANCODE_ESCAPE))
+    if (button({w - 127, h - 67, 88, 42}, "Return") || is_key_pressed(sengine::key_code::escape))
         request = ui_request::finish_photo;
     if (get_time() < notify_until_)
         text(notification_, 30, 25, 16, cream, false, true);
