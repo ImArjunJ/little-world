@@ -1,0 +1,20 @@
+name: build
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - run: sudo apt-get update && sudo apt-get install -y clang libc++-dev libc++abi-dev libfreetype6-dev libpng-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev libxfixes-dev libxss-dev libxtst-dev libgl1-mesa-dev
+      - run: |
+          git clone --depth 1 --branch release-3.2.28 https://github.com/libsdl-org/SDL.git /tmp/sdl
+          cmake -S /tmp/sdl -B /tmp/sdl/build -DCMAKE_BUILD_TYPE=Release
+          cmake --build /tmp/sdl/build --parallel 2
+          sudo cmake --install /tmp/sdl/build
+      - run: ./vendor/sengine/tools/fetch_filament.sh
+      - run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=vendor/sengine/cmake/clang_libcxx.cmake
+      - run: cmake --build build --parallel 2
