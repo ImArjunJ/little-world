@@ -4,6 +4,16 @@
 #include <numbers>
 namespace terrarium {
 namespace {
+float camera_clearance(sengine::point origin, sengine::point ray, sengine::box obstacle, float padding,
+                       float clearance) {
+    obstacle.low = {obstacle.low.x - padding, obstacle.low.y - padding, obstacle.low.z - padding};
+    obstacle.high = {obstacle.high.x + padding, obstacle.high.y + padding, obstacle.high.z + padding};
+    const auto hit = sengine::intersect(origin, ray, obstacle, clearance);
+    return hit ? std::max(.001f, *hit - .001f) : clearance;
+}
+sengine::point rotate_to_local(sengine::point value, float cosine, float sine) {
+    return {value.x * cosine - value.z * sine, value.y, value.x * sine + value.z * cosine};
+}
 sengine::point turn(sengine::point a, sengine::point b, float t) {
     float yaw = std::atan2(a.x, -a.z);
     yaw += std::remainder(std::atan2(b.x, -b.z) - yaw, 2 * std::numbers::pi_v<float>) * t;
@@ -14,14 +24,14 @@ sengine::point turn(sengine::point a, sengine::point b, float t) {
 void greenhouse_controls::enter_editor(const std::string& id) {
     if (game_.edit(id)) {
         notice_.clear();
-        return_camera_ = sengine::camera(explorer_, false);
+        return_camera_ = explorer_.camera(false);
         travel_eye_.reset();
         auto jar = greenhouse::spots()[game_.active()->place].position;
         orbit_ = std::atan2(return_camera_.eye.x - jar.x, return_camera_.eye.z - jar.z);
         zoom_ = target_zoom_ = 1.25f;
         elevation_ = .48f;
         focus_ = target_focus_ = {};
-        sengine::stop(explorer_);
+        explorer_.stop();
     }
 }
 void greenhouse_controls::advance(double seconds, bool reduced_motion) {
@@ -46,7 +56,7 @@ void greenhouse_controls::pan(float right, float forward) {
 }
 void greenhouse_controls::open_journal() {
     if (game_.open_journal()) {
-        sengine::stop(explorer_);
+        explorer_.stop();
     }
 }
 void greenhouse_controls::event(const sengine::input_event& e, bool captured) {
@@ -59,10 +69,10 @@ void greenhouse_controls::event(const sengine::input_event& e, bool captured) {
         }
         if (mode == greenhouse_mode::carry) {
             if (key == sengine::key_code::e && captured) {
-                int p = game_.target(sengine::camera(explorer_, false), land_, true);
+                int p = game_.target(explorer_.camera(false), land_, true);
                 if (p >= 0) {
                     game_.place(p);
-                    sengine::stop(explorer_);
+                    explorer_.stop();
                 }
             }
             return;
@@ -73,18 +83,18 @@ void greenhouse_controls::event(const sengine::input_event& e, bool captured) {
                 return;
             }
             if (captured && (key == sengine::key_code::e || key == sengine::key_code::f)) {
-                int place = game_.target(sengine::camera(explorer_, false), land_, false);
+                int place = game_.target(explorer_.camera(false), land_, false);
                 if (auto* g = game_.at(place)) {
                     auto id = g->id;
-                    if (key == sengine::key_code::e && explorer_.grounded)
+                    if (key == sengine::key_code::e && explorer_.grounded())
                         enter_editor(id);
-                    else if (explorer_.grounded) {
+                    else if (explorer_.grounded()) {
                         auto p = greenhouse::spots()[place].position;
-                        auto feet = explorer_.position;
+                        auto feet = explorer_.position();
                         if (std::hypot(p.x - feet.x, p.z - feet.z) <= .98f) {
                             game_.lift(id);
                             notice_.clear();
-                            sengine::stop(explorer_);
+                            explorer_.stop();
                         } else
                             notice_ = "Step closer to lift this garden.";
                     }
@@ -111,7 +121,7 @@ float greenhouse_controls::camera_padding() const {
     float tangent = std::tan(std::max(65.f, return_camera_.fov) * std::numbers::pi_v<float> / 360);
     return std::max(.015f, .006f * std::sqrt(1 + tangent * tangent * (1 + aspect_ * aspect_)));
 }
-sengine::camera_pose greenhouse_controls::editor_camera() const {
+terrarium::camera_pose greenhouse_controls::editor_camera() const {
     auto result = return_camera_;
     auto* g = game_.active();
     if (!g || g->place < 0)
@@ -126,17 +136,12 @@ sengine::camera_pose greenhouse_controls::editor_camera() const {
     sengine::point ray{offset_from_jar.x / d, offset_from_jar.y / d, offset_from_jar.z / d};
     const float padding = camera_padding();
     float clearance = d;
-    auto avoid = [&](sengine::box obstacle) {
-        obstacle.low = {obstacle.low.x - padding, obstacle.low.y - padding, obstacle.low.z - padding};
-        obstacle.high = {obstacle.high.x + padding, obstacle.high.y + padding, obstacle.high.z + padding};
-        auto hit = sengine::intersect(target, ray, obstacle, clearance);
-        if (hit)
-            clearance = std::max(.001f, *hit - .001f);
-    };
     for (auto obstacle : land_.obstacles)
-        avoid(obstacle);
+        clearance = camera_clearance(target, ray, obstacle, padding, clearance);
     const auto feet = return_camera_.feet;
-    avoid({{feet.x - .3f, feet.y, feet.z - .3f}, {feet.x + .3f, return_camera_.eye.y + .2f, feet.z + .3f}});
+    const sengine::box body{{feet.x - .3f, feet.y, feet.z - .3f},
+                            {feet.x + .3f, return_camera_.eye.y + .2f, feet.z + .3f}};
+    clearance = camera_clearance(target, ray, body, padding, clearance);
     result.eye = {target.x + ray.x * clearance, target.y + ray.y * clearance, target.z + ray.z * clearance};
     auto delta = sengine::point{target.x - result.eye.x, target.y - result.eye.y, target.z - result.eye.z};
     float len = std::sqrt(delta.x * delta.x + delta.y * delta.y + delta.z * delta.z);
@@ -146,7 +151,7 @@ sengine::camera_pose greenhouse_controls::editor_camera() const {
                            std::atan(std::tan(43.f * std::numbers::pi_v<float> / 360) * d / clearance));
     return result;
 }
-sengine::camera_pose greenhouse_controls::camera() const {
+terrarium::camera_pose greenhouse_controls::camera() const {
     if (game_.mode() == greenhouse_mode::editor)
         return editor_camera();
     if (game_.mode() == greenhouse_mode::enter_editor || game_.mode() == greenhouse_mode::leave_editor) {
@@ -167,7 +172,7 @@ sengine::camera_pose greenhouse_controls::camera() const {
         result.fov = return_camera_.fov + (to.fov - return_camera_.fov) * t;
         return result;
     }
-    return sengine::camera(explorer_);
+    return explorer_.camera();
 }
 sengine::point greenhouse_controls::world_point(vec2 point, float above_soil) const {
     auto* g = game_.active();
@@ -196,10 +201,7 @@ std::optional<vec2> greenhouse_controls::soil_point(float x, float y, float widt
     auto p = greenhouse::spots()[g->place].position;
     float soil = p.y + float(g->world.design().soil_depth + g->world.design().drainage_depth);
     float c = std::cos(g->rotation), sn = std::sin(g->rotation);
-    auto local = [&](sengine::point v) {
-        return sengine::point{v.x * c - v.z * sn, v.y, v.x * sn + v.z * c};
-    };
-    return presentation::intersect_surface(g->world, local({origin.x - p.x, origin.y - soil, origin.z - p.z}),
-                                           local(ray));
+    const auto local_origin = rotate_to_local({origin.x - p.x, origin.y - soil, origin.z - p.z}, c, sn);
+    return presentation::intersect_surface(g->world, local_origin, rotate_to_local(ray, c, sn));
 }
 }

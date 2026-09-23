@@ -1,6 +1,6 @@
 #pragma once
+#include "player_controller.hpp"
 #include "save_library.hpp"
-#include "sengine/explorer.hpp"
 #include <optional>
 #include <simulates/clock.hpp>
 
@@ -61,11 +61,16 @@ class greenhouse {
     float carry_blend() const;
     bool transition() const;
     bool can_walk() const { return mode_ == greenhouse_mode::explore || mode_ == greenhouse_mode::carry; }
-    bool carry_clear(const sengine::camera_pose&, const sengine::landscape&) const;
-    sengine::explorer_input locomotion(sengine::explorer_input input) const;
-    int target(const sengine::camera_pose&, const sengine::landscape&, bool empty) const;
+    bool carry_clear(const terrarium::camera_pose&, const terrarium::landscape&) const;
+    terrarium::explorer_input locomotion(terrarium::explorer_input input) const;
+    int target(const terrarium::camera_pose&, const terrarium::landscape&, bool empty) const;
     static const std::vector<garden_spot>& spots();
     static const char* location(int place);
+
+  private:
+    greenhouse_garden* mutable_active();
+    void begin(greenhouse_mode mode);
+    void load_layout();
 
   private:
     save_library library_;
@@ -75,8 +80,5 @@ class greenhouse {
     double speed_{1}, autosave_{};
     float progress_{};
     int destination_{-1};
-    greenhouse_garden* mutable_active();
-    void begin(greenhouse_mode mode);
-    void load_layout();
 };
 }

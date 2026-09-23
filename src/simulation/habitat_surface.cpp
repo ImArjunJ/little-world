@@ -7,6 +7,9 @@ float basin_depth(const garden_design& design) {
     return std::min(.018f, float(design.soil_depth) * .35f);
 }
 namespace {
+vec2 surface_point(sengine::point origin, sengine::point direction, float scale, float distance) {
+    return {(origin.x + direction.x * distance) / scale, (origin.z + direction.z * distance) / scale};
+}
 float wet_extent_squared(const world_state& world) {
     float fill = std::clamp(world.pond_level(), 0.f, 1.f);
     return .5f - std::sin(std::asin(1 - 2 * fill) / 3);
@@ -35,15 +38,12 @@ std::optional<vec2> intersect_surface(const world_state& world, sengine::point o
         return {};
     const float end = (-basin_depth(world.design()) - origin.y) / direction.y;
     const float scale = float(world.design().radius()) * habitat_scale;
-    auto point = [&](float t) {
-        return vec2{(origin.x + direction.x * t) / scale, (origin.z + direction.z * t) / scale};
-    };
     float low = plane, high = end;
 
     constexpr int segments = 32;
     for (int i = 1; i <= segments; ++i) {
         const float t = std::lerp(plane, end, float(i) / segments);
-        if (origin.y + direction.y * t <= surface_offset(world, point(t))) {
+        if (origin.y + direction.y * t <= surface_offset(world, surface_point(origin, direction, scale, t))) {
             low = std::lerp(plane, end, float(i - 1) / segments);
             high = t;
             break;
@@ -51,12 +51,13 @@ std::optional<vec2> intersect_surface(const world_state& world, sengine::point o
     }
     for (int i = 0; i < 22; ++i) {
         float mid = (low + high) * .5f;
-        if (origin.y + direction.y * mid > surface_offset(world, point(mid)))
+        if (origin.y + direction.y * mid >
+            surface_offset(world, surface_point(origin, direction, scale, mid)))
             low = mid;
         else
             high = mid;
     }
-    auto result = point((low + high) * .5f);
+    auto result = surface_point(origin, direction, scale, (low + high) * .5f);
     return std::hypot(result.x, result.y) <= world_state::radius * 1.05f ? std::optional(result)
                                                                          : std::nullopt;
 }

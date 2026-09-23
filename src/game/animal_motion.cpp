@@ -54,7 +54,7 @@ void animal_motion::update(const world_state& world, std::string_view garden) {
         track.seen = tick_;
         track.weights = animal_gait(creature.species, track.phase, track.activity);
     }
-    std::erase_if(tracks_, [&](const auto& entry) { return entry.second.seen != tick_; });
+    std::erase_if(tracks_, [this](const auto& entry) { return entry.second.seen != tick_; });
 }
 const animal_weights& animal_motion::weights(entity_id id) const {
     static constexpr animal_weights resting{};

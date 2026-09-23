@@ -55,17 +55,9 @@ void user_interface::soil_panel(world_state& world, sengine::drawing::rect r) {
     }
 }
 float user_interface::matter_journal(const world_state& world, float x, float y, float w, bool measure_only) {
-    auto text = [&](const std::string& value, float px, float py, float size, sengine::drawing::color color,
-                    bool display = false) {
-        if (!measure_only)
-            this->text(value, px, py, size, color, display);
-    };
-    auto wrapped = [&](const std::string& value, float px, float py, float width, float size,
-                       sengine::drawing::color color) {
-        return this->wrapped(value, px, py, width, size, color, measure_only);
-    };
-    text("Nothing simply disappears", x, y, 26, ink, true);
-    const float description_end = wrapped(
+    const panel_text content(*this, measure_only);
+    content.text("Nothing simply disappears", x, y, 26, ink, true);
+    const float description_end = content.wrapped(
         "Nitrogen moves through roots, neighbours and the soil. Each colour shows a measured store, in "
         "milligrams.",
         x, y + 40, w, 16, faded);
@@ -78,8 +70,8 @@ float user_interface::matter_journal(const world_state& world, float x, float y,
             float py = plot.y + plot.height * line / 2;
             draw_line_ex({plot.x, py}, {plot.x + plot.width, py}, 1, rgb(200, 190, 160));
         }
-        text(std::format("{:.0f}", ceiling), x, plot.y - 4, 12, faded);
-        text("0", x + 26, plot.y + plot.height - 6, 12, faded);
+        content.text(std::format("{:.0f}", ceiling), x, plot.y - 4, 12, faded);
+        content.text("0", x + 26, plot.y + plot.height - 6, 12, faded);
         for (std::size_t i = 1; i < samples.size(); ++i) {
             const float xa = plot.x + timeline.fraction(samples[i - 1].day) * plot.width;
             const float xb = plot.x + timeline.fraction(samples[i].day) * plot.width;
@@ -106,17 +98,18 @@ float user_interface::matter_journal(const world_state& world, float x, float y,
         const float px = plot.x + timeline.fraction(chosen.day) * plot.width;
         draw_line_ex({px, plot.y}, {px, plot.y + plot.height}, 1, ink);
     }
-    text(std::format("Day {:.2f}", samples.front().day + 1), plot.x, plot.y + plot.height + 9, 13, faded);
+    content.text(std::format("Day {:.2f}", samples.front().day + 1), plot.x, plot.y + plot.height + 9, 13,
+                 faded);
     const auto end = std::format("{:.2f} now", samples.back().day + 1);
-    text(end, plot.x + plot.width - measure_text_ex(body_, end.c_str(), 13, 0).x, plot.y + plot.height + 9,
-         13, faded);
+    content.text(end, plot.x + plot.width - measure_text_ex(body_, end.c_str(), 13, 0).x,
+                 plot.y + plot.height + 9, 13, faded);
     float row = plot.y + plot.height + 45;
     const int columns = w < 500 ? 1 : 2;
     for (int i = 0; i < 5; ++i) {
         const float cx = x + (i % columns) * w / columns, cy = row + (i / columns) * 26;
         if (!measure_only)
             draw_circle({cx + 4, cy + 8}, 4, colors[i]);
-        text(std::format("{}: {:.1f} mg", labels[i], chosen.nitrogen[i]), cx + 16, cy, 14, faded);
+        content.text(std::format("{}: {:.1f} mg", labels[i], chosen.nitrogen[i]), cx + 16, cy, 14, faded);
     }
     row += ((5 + columns - 1) / columns) * 26 + 15;
     const std::string live_caption =
@@ -126,14 +119,15 @@ float user_interface::matter_journal(const world_state& world, float x, float y,
                     chosen.day + 1);
     const float caption_end = std::max(this->wrapped(live_caption, x, row, w, 14, faded, true),
                                        this->wrapped(sampled_caption, x, row, w, 14, faded, true));
-    wrapped(hover ? sampled_caption : live_caption, x, row, w, 14, faded);
+    content.wrapped(hover ? sampled_caption : live_caption, x, row, w, 14, faded);
     row = caption_end + 24;
     const auto& ledger = world.matter_ledger();
-    return wrapped(std::format("Since records began: {:.2f} g carbon captured from air; {:.2f} g returned by "
-                               "respiration. Added plants, creatures and compost supplied {:.2f} g nitrogen.",
-                               ledger.fixed_carbon / 1000, ledger.respired_carbon / 1000,
-                               ledger.introduced.nitrogen / 1000),
-                   x, row, w, 15, ink) +
+    return content.wrapped(
+               std::format("Since records began: {:.2f} g carbon captured from air; {:.2f} g returned by "
+                           "respiration. Added plants, creatures and compost supplied {:.2f} g nitrogen.",
+                           ledger.fixed_carbon / 1000, ledger.respired_carbon / 1000,
+                           ledger.introduced.nitrogen / 1000),
+               x, row, w, 15, ink) +
            40;
 }
 }

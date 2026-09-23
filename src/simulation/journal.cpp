@@ -4,6 +4,14 @@
 #include <stdexcept>
 namespace terrarium {
 namespace {
+bool valid_matter_reading(const matter_reading& sample) {
+    if (!std::isfinite(sample.day) || sample.day < 0 || !std::isfinite(sample.carbon) || sample.carbon < 0)
+        return false;
+    for (double value : sample.nitrogen)
+        if (!std::isfinite(value) || value < 0)
+            return false;
+    return true;
+}
 bool valid(const population_sample& sample) {
     if (!std::isfinite(sample.day) || sample.day < 0 || sample.plants < 0 ||
         sample.plants > static_cast<int>(world_state::max_plants))
@@ -73,19 +81,10 @@ int journal_timeline::ceiling(int series) const {
 matter_timeline::matter_timeline(const world_state& world)
     : matter_timeline(world.matter_history(), world.matter_sample()) {}
 matter_timeline::matter_timeline(const std::deque<matter_reading>& history, matter_reading current) {
-    auto valid = [](const matter_reading& sample) {
-        if (!std::isfinite(sample.day) || sample.day < 0 || !std::isfinite(sample.carbon) ||
-            sample.carbon < 0)
-            return false;
-        for (double value : sample.nitrogen)
-            if (!std::isfinite(value) || value < 0)
-                return false;
-        return true;
-    };
-    if (!valid(current))
+    if (!valid_matter_reading(current))
         throw std::invalid_argument("Invalid current resource observation");
     for (const auto& sample : history) {
-        if (!valid(sample) || sample.day > current.day ||
+        if (!valid_matter_reading(sample) || sample.day > current.day ||
             (!samples_.empty() && sample.day <= samples_.back().day))
             throw std::invalid_argument("Invalid resource history");
         samples_.push_back(sample);

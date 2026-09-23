@@ -13,7 +13,7 @@ template <class element> void read(std::istream& input, element* values, std::si
 }
 fauna_geometry load_fauna(sengine::scene& scene, const std::filesystem::path& directory) {
     fauna_geometry result;
-    const auto material = load_material(scene, directory / "fauna");
+    const auto material = load_material(scene, directory / "fauna.filamat");
     std::ifstream input(directory / "fauna.bin", std::ios::binary);
     std::array<char, 4> magic{};
     read(input, magic.data(), magic.size());

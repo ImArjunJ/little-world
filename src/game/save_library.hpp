@@ -27,6 +27,8 @@ class save_library {
 
   private:
     std::filesystem::path root_;
+
+  private:
     bool metadata(const garden_entry& entry, std::string& error) const;
 };
 }

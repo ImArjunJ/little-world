@@ -15,6 +15,8 @@ struct audio_environment {
 class ambient_mixer {
   public:
     static constexpr int sample_rate = 48000;
+
+  public:
     void render(std::span<float> stereo, audio_environment environment, audio_settings settings);
     std::uint64_t frames() const { return sample_; }
 
@@ -24,6 +26,8 @@ class ambient_mixer {
     float brown_{}, pink_{}, gain_{}, rain_gain_{}, forest_gain_{}, water_gain_{}, drop_{},
         drop_frequency_{1800};
     double drop_phase_{}, bird_phase_{};
+
+  private:
     float noise();
 };
 }

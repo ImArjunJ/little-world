@@ -8,6 +8,8 @@ struct garden_design {
     vessel_form form{vessel_form::bowl};
     soil_mix mix{soil_mix::forest};
     double soil_depth{.06}, drainage_depth{.025};
+
+  public:
     bool valid() const;
     double radius() const;
     double height() const;

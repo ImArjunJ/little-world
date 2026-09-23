@@ -1,6 +1,6 @@
 #pragma once
 #include "greenhouse.hpp"
-#include "sengine/explorer.hpp"
+#include "player_controller.hpp"
 #include "sengine/native_hud.hpp"
 #include "sengine/window.hpp"
 #include "tending_preview.hpp"
@@ -8,6 +8,7 @@
 #include <memory>
 
 namespace terrarium::render {
+struct garden_scene_state;
 enum class render_quality { low, high };
 
 class garden_scene {
@@ -18,13 +19,12 @@ class garden_scene {
     garden_scene& operator=(const garden_scene&) = delete;
     sengine::native_hud& hud();
     void configure(int detail, bool occlusion, bool soft_focus, bool inspecting, float focus_distance);
-    void present(const greenhouse&, const sengine::camera_pose& player, double seconds,
+    void present(const greenhouse&, const terrarium::camera_pose& player, double seconds,
                  std::optional<tending_preview> preview = {});
-    bool frame(const sengine::camera_pose& camera, unsigned width, unsigned height,
+    bool frame(const terrarium::camera_pose& camera, unsigned width, unsigned height,
                const std::filesystem::path& capture = {}, bool capture_interface = true);
 
   private:
-    struct impl;
-    std::unique_ptr<impl> impl_;
+    std::unique_ptr<garden_scene_state> state_;
 };
 }

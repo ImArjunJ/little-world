@@ -8,12 +8,12 @@
 namespace terrarium {
 class greenhouse_controls {
   public:
-    greenhouse_controls(greenhouse& game, sengine::explorer& explorer, const sengine::landscape& land)
+    greenhouse_controls(greenhouse& game, terrarium::explorer& explorer, const terrarium::landscape& land)
         : game_(game), explorer_(explorer), land_(land) {}
     void event(const sengine::input_event&, bool captured);
     void advance(double seconds, bool reduced_motion = false);
     void pan(float right, float forward);
-    sengine::camera_pose camera() const;
+    terrarium::camera_pose camera() const;
     void viewport(float aspect) { aspect_ = aspect; }
     std::optional<vec2> soil_point(float x, float y, float width, float height) const;
     sengine::point world_point(vec2, float above_soil = 0) const;
@@ -36,13 +36,17 @@ class greenhouse_controls {
     void enter_editor(const std::string&);
     void open_journal();
     std::string take_notice() { return std::exchange(notice_, {}); }
-    const sengine::landscape& landscape() const { return land_; }
+    const terrarium::landscape& landscape() const { return land_; }
+
+  private:
+    float camera_padding() const;
+    terrarium::camera_pose editor_camera() const;
 
   private:
     greenhouse& game_;
-    sengine::explorer& explorer_;
-    const sengine::landscape& land_;
-    sengine::camera_pose return_camera_{};
+    terrarium::explorer& explorer_;
+    const terrarium::landscape& land_;
+    terrarium::camera_pose return_camera_{};
     vec2 focus_{}, target_focus_{};
     float orbit_{}, elevation_{.48f}, zoom_{1.25f};
     float target_zoom_{1.25f};
@@ -51,7 +55,5 @@ class greenhouse_controls {
     mutable sengine::camera_path travel_;
     mutable std::optional<sengine::point> travel_eye_;
     mutable float travel_padding_{};
-    float camera_padding() const;
-    sengine::camera_pose editor_camera() const;
 };
 }

@@ -133,7 +133,7 @@ void greenhouse::advance(double seconds, bool simulate) {
         return;
     int budget = std::max(8, 512 / int(std::max<size_t>(1, gardens_.size())));
     for (auto& g : gardens_) {
-        int ticks = simulates::accrue(g.clock, seconds, speed_, budget);
+        int ticks = g.clock.accrue(seconds, speed_, budget);
         if (ticks) {
             g.world.advance(ticks);
             g.dirty = true;
@@ -187,7 +187,7 @@ bool greenhouse::remove(const std::string& id) {
         return false;
     if (!library_.remove(id, error_))
         return false;
-    std::erase_if(gardens_, [&](auto& g) { return g.id == id; });
+    std::erase_if(gardens_, [id](const auto& g) { return g.id == id; });
     if (tracked_ == id)
         tracked_.clear();
     return save();
@@ -204,7 +204,7 @@ world_state* greenhouse::editing_world() {
 void greenhouse::reset_editor_clock() {
     if (mode_ == greenhouse_mode::editor)
         if (auto* g = mutable_active())
-            g->clock.pending = 0;
+            g->clock.reset();
 }
 bool greenhouse::duplicate(const std::string& id) {
     if (mode_ != greenhouse_mode::journal)
@@ -373,7 +373,7 @@ float greenhouse::carry_blend() const {
         t = 1 - std::clamp(progress_ / .72f, 0.f, 1.f);
     return t * t * (3 - 2 * t);
 }
-bool greenhouse::carry_clear(const sengine::camera_pose& pose, const sengine::landscape& land) const {
+bool greenhouse::carry_clear(const terrarium::camera_pose& pose, const terrarium::landscape& land) const {
     if (!holding() || !active())
         return true;
     const auto base = compute_carry_pose(pose, active()->world.design()).base;
@@ -389,7 +389,7 @@ bool greenhouse::carry_clear(const sengine::camera_pose& pose, const sengine::la
     }
     return true;
 }
-sengine::explorer_input greenhouse::locomotion(sengine::explorer_input input) const {
+terrarium::explorer_input greenhouse::locomotion(terrarium::explorer_input input) const {
     if (!can_walk())
         return {};
     if (mode_ == greenhouse_mode::carry) {
@@ -402,7 +402,8 @@ sengine::explorer_input greenhouse::locomotion(sengine::explorer_input input) co
     }
     return input;
 }
-int greenhouse::target(const sengine::camera_pose& camera, const sengine::landscape& land, bool empty) const {
+int greenhouse::target(const terrarium::camera_pose& camera, const terrarium::landscape& land,
+                       bool empty) const {
     float best = 2.6f;
     int result = -1;
     for (int i = 0; i < int(spots().size()); ++i) {

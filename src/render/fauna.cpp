@@ -17,6 +17,8 @@ struct fauna_meshes::impl {
         std::size_t used{}, previous{};
     };
     std::array<pool, 3> pools;
+
+  public:
     void add(pool& pool, species_kind species) {
         auto kind = unsigned(species);
         auto body = create_mesh(scene, geometry.meshes[kind], geometry.materials[kind]);

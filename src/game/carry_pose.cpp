@@ -3,7 +3,7 @@
 #include <cmath>
 
 namespace terrarium {
-carry_pose compute_carry_pose(const sengine::camera_pose& player, const garden_design& design) {
+carry_pose compute_carry_pose(const terrarium::camera_pose& player, const garden_design& design) {
     const float radius = float(design.radius());
     const sengine::point forward{std::sin(player.yaw), 0, -std::cos(player.yaw)},
         right{std::cos(player.yaw), 0, std::sin(player.yaw)};

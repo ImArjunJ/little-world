@@ -123,12 +123,6 @@ struct journal_entry {
 
 class world_state {
   public:
-    static constexpr float radius = 4.65f;
-    static constexpr int soil_width = 24;
-    static constexpr std::uint64_t ticks_per_day = 1800;
-    static constexpr double fixed_step = 1.0 / 30.0;
-    static constexpr std::size_t max_creatures = 1200, max_plants = 320;
-
     explicit world_state(std::uint32_t seed = 1402, bool populate = true);
     bool construct(const garden_design&);
     const garden_design& design() const { return design_; }
@@ -160,7 +154,6 @@ class world_state {
     double root_nutrients(vec2 point) const;
     bool amend(vec2 point, amendment kind, double grams = .5);
     float pond_level() const;
-    inline static constexpr vec2 pond_center{1.35f, .75f}, pond_radii{1.2f, .9f};
     static float pond_radius_squared(vec2 position);
     static bool in_pond(vec2 position);
     double day() const { return static_cast<double>(tick_) / ticks_per_day; }
@@ -193,12 +186,57 @@ class world_state {
     const std::vector<ancestor_record>& family() const { return family_; }
     const std::deque<population_sample>& history() const { return history_; }
     const std::deque<journal_entry>& journal() const { return journal_; }
-    climate_state climate;
     bool save(const std::filesystem::path& path, std::string& error) const;
     bool load(const std::filesystem::path& path, std::string& error);
     std::uint64_t digest() const;
 
+  public:
+    static constexpr float radius = 4.65f;
+    static constexpr int soil_width = 24;
+    static constexpr std::uint64_t ticks_per_day = 1800;
+    static constexpr double fixed_step = 1.0 / 30.0;
+    static constexpr std::size_t max_creatures = 1200, max_plants = 320;
+
+    inline static constexpr vec2 pond_center{1.35f, .75f}, pond_radii{1.2f, .9f};
+
+    climate_state climate;
+
   private:
+    void initialize_matter();
+    void decompose(double dt);
+    void deposit(vec2 point, matter_amount matter);
+    void digest_food(creature_state& creature, matter_amount meal);
+    double root_nitrogen(vec2 point, double take = 0);
+    static matter_amount body_matter(const creature_state& creature);
+    float random(float low = 0, float high = 1);
+    vec2 random_position();
+    int soil_index(vec2 p) const;
+    void metabolize(creature_state& c);
+    void incubate(creature_state& c);
+    void age_creature(creature_state& c, float temp);
+    void move_creature(creature_state& c);
+    void remove_dead_creatures();
+    void sample_history();
+    void report_day();
+    void grow_plant(plant_state& p, const plant_status& condition, float dt);
+    void scatter_seed(plant_state& p);
+    void remove_dead_plants();
+    float inherit_trait(float maternal, float paternal);
+    void reproduce(std::size_t i, std::size_t adults);
+    void ecology();
+    void hydrology(double dt);
+    void microclimate();
+    void receive_water(double kg);
+    void behavior();
+    void record(std::string message);
+    entity_id spawn(species_kind species, vec2 position, entity_id mother, entity_id father,
+                    inherited_traits genes);
+    void write(std::ostream& out) const;
+    bool read(std::istream& in);
+
+  private:
+    friend class world_reader;
+    friend class creature_behavior;
     std::uint64_t tick_{};
     entity_id next_id_{1};
     std::mt19937 random_;
@@ -215,25 +253,6 @@ class world_state {
     day_report report_;
     matter_account matter_;
     std::deque<matter_reading> matter_history_;
-    void initialize_matter();
-    void decompose(double dt);
-    void deposit(vec2 point, matter_amount matter);
-    void digest_food(creature_state& creature, matter_amount meal);
-    double root_nitrogen(vec2 point, double take = 0);
-    static matter_amount body_matter(const creature_state& creature);
-    float random(float low = 0, float high = 1);
-    vec2 random_position();
-    int soil_index(vec2 p) const;
-    void ecology();
-    void hydrology(double dt);
-    void microclimate();
-    void receive_water(double kg);
-    void behavior();
-    void record(std::string message);
-    entity_id spawn(species_kind species, vec2 position, entity_id mother, entity_id father,
-                    inherited_traits genes);
-    void write(std::ostream& out) const;
-    bool read(std::istream& in);
 };
 
 }

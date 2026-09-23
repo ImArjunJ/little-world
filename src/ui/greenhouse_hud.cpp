@@ -1,6 +1,7 @@
 #include "drawing_color.hpp"
 #include "greenhouse.hpp"
 #include "journal.hpp"
+#include "population_plot.hpp"
 #include "ui.hpp"
 #include <algorithm>
 #include <cmath>
@@ -10,8 +11,8 @@ using namespace sengine::drawing;
 namespace {
 constexpr sengine::drawing::color ink{57, 62, 43, 255}, faded{106, 108, 82, 255}, cream{239, 232, 206, 255};
 }
-void user_interface::draw_greenhouse(greenhouse& game, const sengine::explorer& player,
-                                     const sengine::landscape& land) {
+void user_interface::draw_greenhouse(greenhouse& game, const terrarium::explorer& player,
+                                     const terrarium::landscape& land) {
     sync_scale();
     begin_canvas();
     widget_ = 0;
@@ -44,7 +45,7 @@ void user_interface::draw_greenhouse(greenhouse& game, const sengine::explorer& 
         draw_circle({w * .5f, h * .5f}, 2, fade(cream, .85f));
         draw_circle_lines({w * .5f, h * .5f}, 4, fade(ink, .5f));
     }
-    const int target = game.target(sengine::camera(player, false), land, carrying);
+    const int target = game.target(player.camera(false), land, carrying);
     std::string label, action;
     if (game.transition()) {
         label = "A little care";
@@ -68,9 +69,9 @@ void user_interface::draw_greenhouse(greenhouse& game, const sengine::explorer& 
     }
     if (!carrying) {
         if (auto* garden = game.find(game.tracked()); garden && garden->place >= 0) {
-            auto a = greenhouse::spots()[garden->place].position, b = player.position;
+            auto a = greenhouse::spots()[garden->place].position, b = player.position();
             float dx = a.x - b.x, dz = a.z - b.z,
-                  angle = std::remainder(std::atan2(dx, -dz) - sengine::camera(player, false).yaw, 2 * pi);
+                  angle = std::remainder(std::atan2(dx, -dz) - player.camera(false).yaw, 2 * pi);
             auto direction = std::abs(angle) < .25f ? "Ahead" : angle > 0 ? "To your right" : "To your left";
             auto target_name = garden->name;
             float ww = std::min(w - 56, 420.f);
@@ -150,47 +151,7 @@ void user_interface::draw_greenhouse_journal(greenhouse& game) {
     float dx = narrow ? x : x + cw * .46f, dy = narrow ? y + 110 + list_height : y + 94,
           dw = narrow ? cw : cw * .54f;
     if (auto* g = game.find(greenhouse_selection_)) {
-        float fs =
-            std::min(28.f, dw * 28 / std::max(1.f, measure_text_ex(display_, g->name.c_str(), 28, 0).x));
-        text(g->name, dx, dy, fs, ink, true);
-        text(std::format("Day {:.1f} / {}", g->world.day() + 1, g->world.season()), dx, dy + 37, 15, faded);
-        auto pop = g->world.populations();
-        text(std::format("{} plants / {} little neighbours", g->world.plants().size(),
-                         pop[0] + pop[1] + pop[2]),
-             dx, dy + 68, 17, ink);
-        text(std::format("{:.1f} C  /  {:.0f}% humidity  /  {:.0f}% soil water", g->world.temperature(),
-                         g->world.humidity() * 100, g->world.moisture() * 100),
-             dx, dy + 98, 14, faded);
-        text("A RECORD OF SMALL CHANGES", dx, dy + (narrow ? 120 : 140), 12, faded);
-        journal_timeline timeline(g->world);
-        auto samples = timeline.samples();
-        sengine::drawing::rect plot{dx, dy + (narrow ? 151 : 171), dw, narrow ? 48.f : 135.f};
-        constexpr std::array<sengine::drawing::color, 3> colors{
-            {{117, 140, 76, 255}, {178, 141, 75, 255}, {160, 88, 65, 255}}};
-        for (int j = 0; j < 3; ++j) {
-            draw_line_ex({plot.x, plot.y + j * plot.height / 2},
-                         {plot.x + plot.width, plot.y + j * plot.height / 2}, 1, rgb(196, 183, 148));
-            int ceiling = timeline.ceiling(j);
-            for (size_t i = 1; i < samples.size(); ++i) {
-                auto point = [&](const population_sample& s) {
-                    return sengine::drawing::point2{plot.x + float(timeline.fraction(s.day)) * plot.width,
-                                                    plot.y +
-                                                        plot.height * (1 - float(s.population[j]) / ceiling)};
-                };
-                draw_line_ex(point(samples[i - 1]), point(samples[i]), 1.8f, colors[j]);
-            }
-        }
-        float after = plot.y + plot.height + 18;
-        text(std::format("Aphids {}   Snails {}   Ladybirds {}", pop[0], pop[1], pop[2]), dx, after, 14,
-             faded);
-        if (g->place >= 0 && button({dx, after + 30, dw, 38}, "Find this garden", true)) {
-            request = ui_request::open;
-            request_id = g->id;
-        }
-        if (!narrow && !g->world.journal().empty()) {
-            text("A note from the garden", dx, after + 100, 22, ink, true);
-            wrapped(g->world.journal().front().message, dx, after + 137, dw, 16, faded);
-        }
+        garden_summary(*g, dx, dy, dw, narrow);
     } else {
         illustration({x + cw * .5f, y + 250}, 140, 0, get_time());
         wrapped("There is room for a little life here. Open your gardens to plant a new beginning.", x,
@@ -206,5 +167,45 @@ void user_interface::draw_greenhouse_journal(greenhouse& game) {
     }
     widget_count_ = widget_;
     end_transform();
+}
+void user_interface::garden_summary(const greenhouse_garden& garden, float dx, float dy, float dw,
+                                    bool narrow) {
+    float fs =
+        std::min(28.f, dw * 28 / std::max(1.f, measure_text_ex(display_, garden.name.c_str(), 28, 0).x));
+    text(garden.name, dx, dy, fs, ink, true);
+    text(std::format("Day {:.1f} / {}", garden.world.day() + 1, garden.world.season()), dx, dy + 37, 15,
+         faded);
+    auto pop = garden.world.populations();
+    text(std::format("{} plants / {} little neighbours", garden.world.plants().size(),
+                     pop[0] + pop[1] + pop[2]),
+         dx, dy + 68, 17, ink);
+    text(std::format("{:.1f} C  /  {:.0f}% humidity  /  {:.0f}% soil water", garden.world.temperature(),
+                     garden.world.humidity() * 100, garden.world.moisture() * 100),
+         dx, dy + 98, 14, faded);
+    text("A RECORD OF SMALL CHANGES", dx, dy + (narrow ? 120 : 140), 12, faded);
+    journal_timeline timeline(garden.world);
+    auto samples = timeline.samples();
+    sengine::drawing::rect plot{dx, dy + (narrow ? 151 : 171), dw, narrow ? 48.f : 135.f};
+    constexpr std::array<sengine::drawing::color, 3> colors{
+        {{117, 140, 76, 255}, {178, 141, 75, 255}, {160, 88, 65, 255}}};
+    for (int j = 0; j < 3; ++j) {
+        draw_line_ex({plot.x, plot.y + j * plot.height / 2},
+                     {plot.x + plot.width, plot.y + j * plot.height / 2}, 1, rgb(196, 183, 148));
+        int ceiling = timeline.ceiling(j);
+        const population_plot graph(timeline, plot, j, ceiling);
+        for (size_t i = 1; i < samples.size(); ++i) {
+            draw_line_ex(graph.project(samples[i - 1]), graph.project(samples[i]), 1.8f, colors[j]);
+        }
+    }
+    float after = plot.y + plot.height + 18;
+    text(std::format("Aphids {}   Snails {}   Ladybirds {}", pop[0], pop[1], pop[2]), dx, after, 14, faded);
+    if (garden.place >= 0 && button({dx, after + 30, dw, 38}, "Find this garden", true)) {
+        request = ui_request::open;
+        request_id = garden.id;
+    }
+    if (!narrow && !garden.world.journal().empty()) {
+        text("A note from the garden", dx, after + 100, 22, ink, true);
+        wrapped(garden.world.journal().front().message, dx, after + 137, dw, 16, faded);
+    }
 }
 }

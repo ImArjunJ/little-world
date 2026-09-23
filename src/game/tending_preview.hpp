@@ -8,6 +8,8 @@ struct tending_preview {
     garden_tool tool;
     vec2 position;
     placement_problem problem{};
+
+  public:
     bool allowed() const { return problem == placement_problem::none; }
     const char* hint() const;
 };

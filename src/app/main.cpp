@@ -4,7 +4,7 @@
 
 int main() {
     try {
-        terrarium::run_game();
+        terrarium::application{}.run();
     } catch (const std::exception& error) {
         std::cerr << "Little World: " << error.what() << '\n';
         return 1;

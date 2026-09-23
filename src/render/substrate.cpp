@@ -13,6 +13,8 @@ struct substrate_meshes::impl {
     };
     std::array<sengine::mesh_id, 3> meshes;
     std::array<garden, 10> gardens;
+
+  public:
     explicit impl(sengine::scene& scene) : scene(scene) {}
 };
 substrate_meshes::substrate_meshes(sengine::scene& scene, sengine::material_id soil,

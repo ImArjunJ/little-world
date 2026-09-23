@@ -68,51 +68,8 @@ void user_interface::construction(sengine::drawing::rect page, float time) {
     text(titles[construction_step_], x, y, 34, ink, true);
     text(hints[construction_step_], x, y + 48, 16, faded);
 
-    const float unit = 330, cx = x + 108, bottom = y + 239;
-    const float radius = draft_design.radius() * unit, top = bottom - draft_design.height() * unit;
-    const float drain_top = bottom - draft_design.drainage_depth * unit;
-    const float soil_top = drain_top - draft_design.soil_depth * unit;
-    sengine::drawing::color soil = draft_design.mix == soil_mix::sand   ? rgb(173, 146, 95)
-                                   : draft_design.mix == soil_mix::loam ? rgb(114, 91, 64)
-                                                                        : rgb(92, 80, 57);
-    draw_ellipse(cx, bottom + 7, radius + 9, 9, rgb(77, 75, 43, 24));
-    draw_rectangle_rec({cx - radius, top, radius * 2, bottom - top}, rgb(189, 208, 181, 40));
-    draw_rectangle_rec({cx - radius, drain_top, radius * 2, bottom - drain_top}, rgb(157, 149, 127));
-    draw_ellipse(cx, bottom, radius, 7, rgb(151, 143, 119));
-    for (int i = 0; i < 28; ++i) {
-        const float px = cx - radius + 6 + std::fmod(i * 23.7f, radius * 2 - 12);
-        const float py = drain_top + 2 + std::fmod(i * 5.31f, std::max(1.f, bottom - drain_top - 4));
-        draw_ellipse(px, py, 3.5f, 2.1f, i % 2 ? rgb(187, 175, 146) : rgb(117, 117, 103));
-    }
-    draw_rectangle_rec({cx - radius, soil_top, radius * 2, drain_top - soil_top}, soil);
-    draw_ellipse(cx, soil_top, radius, 7, rgb(118, 113, 79));
-    if (construction_step_ == 2 && draft_starter != starter::empty) {
-        for (int i = 0; i < 5; ++i) {
-            const float px = cx + (i - 2) * radius * .29f;
-            const float sway = reduced_motion ? 0 : std::sin(time * 1.6f + i) * 2;
-            const float stem = std::min(soil_top - top - 12, 19.f + (i % 3) * 9);
-            draw_line_ex({px, soil_top}, {px + sway, soil_top - stem}, 2, rgb(98, 124, 67));
-            for (int j = 0; j < 3; ++j) {
-                draw_ellipse(px - 4 + sway, soil_top - stem * (j + 1) / 4, 6, 2.5f, rgb(127, 153, 88));
-                draw_ellipse(px + 4 + sway, soil_top - stem * (j + 1) / 4 - 3, 6, 2.5f, rgb(106, 135, 71));
-            }
-            if (draft_starter == starter::meadow)
-                draw_circle(px + sway, soil_top - stem, 4, rgb(231, 194, 127));
-        }
-    }
-    draw_ellipse_lines(cx, top, radius, 7, rgb(133, 159, 135));
-    draw_line_ex({cx - radius, top}, {cx - radius, bottom}, 2, rgb(133, 159, 135));
-    draw_line_ex({cx + radius, top}, {cx + radius, bottom}, 2, rgb(133, 159, 135));
-    draw_ellipse_lines(cx, bottom, radius, 7, rgb(133, 159, 135));
-    draw_line_ex({cx - radius + 7, top + 10}, {cx - radius + 7, soil_top - 9}, 2, rgb(251, 250, 229, 190));
-    const float tx = x + 228;
-    text(vessel_name(draft_design.form), tx, y + 108, 24, ink, true);
-    text(std::format("{:.0f} cm wide / {:.0f} cm tall", draft_design.radius() * 200,
-                     draft_design.height() * 100),
-         tx, y + 143, 15, faded);
-    text(std::format("{:.1f} L of growing room", draft_design.parameters().air_volume * 1000), tx, y + 171,
-         15, faded);
-    text(std::format("{:.1f} L drainage reserve", draft_design.reservoir_capacity()), tx, y + 197, 15, faded);
+    vessel_preview(x, y, time);
+    vessel_dimensions(x, y);
     const float gap = 10, bw = (cw - gap * 2) / 3;
     if (construction_step_ == 0) {
         for (int i = 0; i < 3; ++i) {
@@ -350,198 +307,47 @@ void user_interface::draw_front(const std::vector<garden_entry>& entries) {
              std::max(1, widget_count_)) %
             std::max(1, widget_count_);
     }
-    float w = width(), h = height(),
-          t = reduced_motion ? 5.f : static_cast<float>(get_time() - screen_since_);
+    const float w = width(), h = height();
+    const float time = reduced_motion ? 5.f : static_cast<float>(get_time() - screen_since_);
     draw_rectangle_gradient_h(0, -20, w, h + 40, rgb(24, 37, 27, 208), rgb(34, 46, 28, 45));
-    const screen_kind showing = screen_;
-    if (showing == screen_kind::home) {
-        float x = w < 850 ? 42 : 72, y = std::max(55.f, h * .15f);
-        text("a small place to come back to", x + 3, y, 16, cream);
-        text("little world", x, y + 28, w < 850 ? 68 : 88, cream, true, true);
-        draw_line_ex({x + 3, y + 139}, {x + 90, y + 139}, 2, rgb(202, 182, 126));
-        text("Grow something. Get to know someone.", x + 3, y + 160, 17, cream);
-        sengine::drawing::rect menu{x, y + 219, 304, 240};
-        paper(menu);
-        if (button({x + 24, menu.y + 18, 256, 46}, "Step into the greenhouse", true))
-            request = ui_request::greenhouse;
-        if (button({x + 24, menu.y + 76, 256, 38}, "Your gardens"))
-            show(screen_kind::gardens);
-        if (button({x + 24, menu.y + 126, 256, 38}, "Settings & comfort"))
-            show(screen_kind::options);
-        if (button({x + 24, menu.y + 176, 256, 38}, "Goodbye for now"))
-            request = ui_request::quit;
-    } else {
-        float pw = std::min(showing == screen_kind::gardens ? 850.f : 640.f, w - 48);
-        float ph = showing == screen_kind::setup ? std::min(620.f, h - 80) : h - 80;
-        sengine::drawing::rect page{(w - pw) / 2, showing == screen_kind::setup ? (h - ph) / 2 : 40.f, pw,
-                                    ph};
+    const auto showing = screen_;
+    const float page_width = std::min(showing == screen_kind::gardens ? 850.f : 640.f, w - 48);
+    const float page_height = showing == screen_kind::setup ? std::min(620.f, h - 80) : h - 80;
+    const sengine::drawing::rect page{(w - page_width) / 2,
+                                      showing == screen_kind::setup ? (h - page_height) / 2 : 40.f,
+                                      page_width, page_height};
+    if (showing != screen_kind::home)
         paper(page);
-        float x = page.x + 30, y = page.y + 26, cw = pw - 60;
-        if (showing == screen_kind::setup) {
-            setup(page, t);
-        } else if (showing == screen_kind::gardens) {
-            text("Your little worlds", x, y, 38, ink, true);
-            text("Each garden has its own story. Time rests while you are away.", x, y + 49, 15, faded);
-            if (button({x, y + 85, 220, 40}, "Plant a new garden", true)) {
-                new_garden();
-            }
-            int count = std::max(1, static_cast<int>((page.height - 260) / 128));
-            int pages = std::max(1, (static_cast<int>(entries.size()) + count - 1) / count);
-            shelf_page_ = std::clamp(shelf_page_, 0, pages - 1);
-            if (entries.empty()) {
-                illustration({x + cw / 2, y + 300}, 170, 3, t);
-                text("There is room for a little life here.", x + cw / 2 - 145, y + 385, 23, ink, true);
-            }
-            for (int j = 0; j < count && shelf_page_ * count + j < static_cast<int>(entries.size()); ++j) {
-                const auto& e = entries[shelf_page_ * count + j];
-                float yy = y + 151 + j * 128;
-                draw_line_ex({x, yy - 11}, {x + cw, yy - 11}, 1, rgb(187, 176, 141));
-                illustration({x + 42, yy + 51}, 62, 3, 5);
-                std::string label = e.name;
-                while (measure_text_ex(display_, label.c_str(), 26, 0).x > cw - 116 && label.size() > 4) {
-                    auto end = label.size() - 1;
-                    while (end > 0 && (static_cast<unsigned char>(label[end]) & 0xc0) == 0x80)
-                        --end;
-                    label.erase(end);
-                }
-                text(label, x + 101, yy, 26, ink, true);
-                text(std::format("Day {}  /  {} little neighbours", static_cast<int>(e.day) + 1,
-                                 e.population[0] + e.population[1] + e.population[2]),
-                     x + 102, yy + 34, 14, faded);
-                float action_width = std::min(105.f, (cw - 120) / 4);
-                float action_pitch = action_width + (cw >= 552 ? 12.f : 8.f);
-                if (button({x + 96, yy + 62, action_width, 34}, "Visit", true)) {
-                    request = ui_request::open;
-                    request_id = e.id;
-                }
-                if (button({x + 96 + action_pitch, yy + 62, action_width, 34}, "Rename")) {
-                    renaming_ = true;
-                    request_id = e.id;
-                    draft_name = e.name;
-                    show(screen_kind::new_garden);
-                }
-                if (button({x + 96 + action_pitch * 2, yy + 62, action_width, 34}, "Make a copy")) {
-                    request = ui_request::duplicate;
-                    request_id = e.id;
-                }
-                if (button({x + 96 + action_pitch * 3, yy + 62, action_width, 34}, "Delete")) {
-                    request_id = e.id;
-                    delete_name_ = e.name;
-                    show(screen_kind::delete_garden);
-                }
-            }
-            if (pages > 1) {
-                if (button({x + cw - 207, page.y + page.height - 62, 65, 34}, "Prev"))
-                    shelf_page_ = std::max(0, shelf_page_ - 1);
-                text(std::format("{} / {}", shelf_page_ + 1, pages), x + cw - 125, page.y + page.height - 51,
-                     14, faded);
-                if (button({x + cw - 66, page.y + page.height - 62, 65, 34}, "Next"))
-                    shelf_page_ = std::min(pages - 1, shelf_page_ + 1);
-            }
-        } else if (showing == screen_kind::delete_garden) {
-            text("Delete this garden?", x, y, 38, ink, true);
-            illustration({x + cw / 2, y + 151}, 145, 3, 5);
-            float name_size =
-                std::min(27.f, (cw - 24) * 27 /
-                                   std::max(1.f, measure_text_ex(display_, delete_name_.c_str(), 27, 0).x));
-            text(delete_name_, x + 12, y + 258, name_size, ink, true);
-            wrapped("This permanently removes this garden, its creatures and family history, and its backup "
-                    "saves.",
-                    x + 12, y + 308, cw - 24, 18, faded);
-            float button_width = (cw - 36) / 2;
-            if (button({x + 12, page.y + page.height - 96, button_width, 44}, "Keep garden", true) ||
-                is_key_pressed(sengine::key_code::escape))
-                show(screen_kind::gardens);
-            else if (button({x + 24 + button_width, page.y + page.height - 96, button_width, 44},
-                            "Delete permanently"))
-                request = ui_request::delete_garden;
-        } else if (showing == screen_kind::construction) {
-            construction(page, t);
-        } else if (showing == screen_kind::new_garden) {
-            text(renaming_ ? "A name to grow into" : "A new little beginning", x, y, 38, ink, true);
-            illustration({x + cw / 2, y + 168}, 160, renaming_ ? 3 : 0, t);
-            name_input({x + 12, y + 284, cw - 24, 54});
-            text("Type a name / Ctrl+A to start over", x + 12, y + 353, 14, faded);
-            if (button({x + 12, y + 401, cw - 24, 46}, renaming_ ? "Keep this name" : "Choose a vessel",
-                       true) ||
-                is_key_pressed(sengine::key_code::enter)) {
-                if (renaming_)
-                    request = ui_request::rename;
-                else
-                    show(screen_kind::construction);
-            }
-        } else if (showing == screen_kind::welcome) {
-            constexpr std::array titles{"A home for little worlds", "A passing shower",
-                                        "Meet your neighbours", "Make yourself at home"};
-            constexpr std::array descriptions{
-                "Walk with WASD and look with the mouse. E opens a placed garden; Esc brings you back. "
-                "F lifts it: walk gently, turn it with the wheel, and E sets it down.",
-                "Inside a garden, choose plants from your field kit and click soil. Water thirsty roots "
-                "or invite rain with R. V reads soil water and shade; the weather page adjusts its climate.",
-                "Click a creature to see what it is doing and eating. Name a favourite, follow its family, "
-                "and look for eggs. The journal explains the food web.",
-                "Scroll closer, right-drag to orbit, or middle-drag to pan. Space pauses time; H hides your "
-                "field kit. "
-                "B returns to the greenhouse. Carry a garden gently to an empty placement."};
-            text(std::format("A FIELD GUIDE  /  {} OF 4", welcome_step_ + 1), x, y, 13, faded);
-            text(titles[welcome_step_], x, y + 34, 36, ink, true);
-            illustration({x + cw / 2, y + 208}, 190, welcome_step_, t);
-            wrapped(descriptions[welcome_step_], x + 12, y + 307, cw - 24, 18, ink);
-            if (button({x + cw - 169, page.y + page.height - 130, 169, 44},
-                       welcome_step_ == 3 ? "Into the garden" : "A little further", true)) {
-                if (welcome_step_ == 3)
-                    request = ui_request::finish_welcome;
-                else {
-                    ++welcome_step_;
-                    screen_since_ = get_time();
-                }
-            }
-            if (welcome_step_ > 0 && button({x, page.y + page.height - 130, 110, 44}, "Back")) {
-                --welcome_step_;
-                screen_since_ = get_time();
-            }
-            for (int i = 0; i < 4; ++i)
-                draw_circle(x + cw / 2 - 27 + i * 18, page.y + page.height - 52, i == welcome_step_ ? 4 : 2,
-                            rgb(126, 138, 81));
-        } else if (showing == screen_kind::options) {
-            clip_ = {x, y, cw, page.height - 105};
-            clipped_ = true;
-            if (check_collision_point_rec(mouse(), clip_))
-                scroll_ = std::clamp(scroll_ - get_mouse_wheel_move() * 48, 0.f,
-                                     std::max(0.f, 1140.f - clip_.height));
-            auto clip = scaled(clip_);
-            begin_scissor_mode(clip.x, clip.y, clip.width, clip.height);
-            preferences({x + 5, y - scroll_, cw - 20, 900});
-            end_scissor_mode();
-            clipped_ = false;
-            if (!options_from_greenhouse_ && garden_name.empty())
-                text("Scroll to explore", x + cw - 132, page.y + page.height - 47, 13, faded);
-            if (options_from_greenhouse_ || !garden_name.empty()) {
-                if (button({x + 118, page.y + page.height - 65, 136, 38}, "Title screen"))
-                    request = ui_request::home;
-                if (button({x + 267, page.y + page.height - 65, cw - 267, 38}, "Save & quit"))
-                    request = ui_request::quit;
-            }
-        }
-        if (showing != screen_kind::setup && showing != screen_kind::delete_garden &&
-            showing != screen_kind::construction &&
-            (button({x, page.y + page.height - 65, showing == screen_kind::welcome ? 140.f : 105.f, 38},
-                    showing == screen_kind::welcome ? "Skip introduction" : "Back") ||
-             is_key_pressed(sengine::key_code::escape))) {
-            if (showing == screen_kind::welcome)
-                request = ui_request::finish_welcome;
-            else if (showing == screen_kind::new_garden)
-                show(draft_from_);
-            else if (showing == screen_kind::gardens)
-                show(gardens_from_);
-            else if (showing == screen_kind::options && options_from_greenhouse_)
-                show(screen_kind::greenhouse);
-            else if (showing == screen_kind::options && !garden_name.empty())
-                show(screen_kind::habitat);
-            else
-                show(screen_kind::home);
-        }
+    switch (showing) {
+    case screen_kind::home:
+        draw_home();
+        break;
+    case screen_kind::setup:
+        setup(page, time);
+        break;
+    case screen_kind::gardens:
+        draw_gardens(page, time, entries);
+        break;
+    case screen_kind::delete_garden:
+        draw_delete_garden(page);
+        break;
+    case screen_kind::construction:
+        construction(page, time);
+        break;
+    case screen_kind::new_garden:
+        draw_new_garden(page, time);
+        break;
+    case screen_kind::welcome:
+        draw_welcome(page, time);
+        break;
+    case screen_kind::options:
+        draw_options(page);
+        break;
+    default:
+        break;
     }
+    if (showing != screen_kind::home)
+        front_navigation(showing, page);
     if (get_time() < notify_until_) {
         auto length = std::min(w - 48, measure_text_ex(body_, notification_.c_str(), 16, 0).x + 32);
         draw_rectangle_rec({(w - length) / 2, h - 37, length, 31}, rgb(30, 43, 29, 245));
@@ -573,5 +379,54 @@ void user_interface::draw_photo() {
         text(notification_, 30, 25, 16, cream, false, true);
     widget_count_ = widget_;
     end_transform();
+}
+void user_interface::vessel_preview(float x, float y, float time) {
+    const float unit = 330, cx = x + 108, bottom = y + 239;
+    const float radius = draft_design.radius() * unit, top = bottom - draft_design.height() * unit;
+    const float drain_top = bottom - draft_design.drainage_depth * unit;
+    const float soil_top = drain_top - draft_design.soil_depth * unit;
+    sengine::drawing::color soil = draft_design.mix == soil_mix::sand   ? rgb(173, 146, 95)
+                                   : draft_design.mix == soil_mix::loam ? rgb(114, 91, 64)
+                                                                        : rgb(92, 80, 57);
+    draw_ellipse(cx, bottom + 7, radius + 9, 9, rgb(77, 75, 43, 24));
+    draw_rectangle_rec({cx - radius, top, radius * 2, bottom - top}, rgb(189, 208, 181, 40));
+    draw_rectangle_rec({cx - radius, drain_top, radius * 2, bottom - drain_top}, rgb(157, 149, 127));
+    draw_ellipse(cx, bottom, radius, 7, rgb(151, 143, 119));
+    for (int i = 0; i < 28; ++i) {
+        const float px = cx - radius + 6 + std::fmod(i * 23.7f, radius * 2 - 12);
+        const float py = drain_top + 2 + std::fmod(i * 5.31f, std::max(1.f, bottom - drain_top - 4));
+        draw_ellipse(px, py, 3.5f, 2.1f, i % 2 ? rgb(187, 175, 146) : rgb(117, 117, 103));
+    }
+    draw_rectangle_rec({cx - radius, soil_top, radius * 2, drain_top - soil_top}, soil);
+    draw_ellipse(cx, soil_top, radius, 7, rgb(118, 113, 79));
+    if (construction_step_ == 2 && draft_starter != starter::empty) {
+        for (int i = 0; i < 5; ++i) {
+            const float px = cx + (i - 2) * radius * .29f;
+            const float sway = reduced_motion ? 0 : std::sin(time * 1.6f + i) * 2;
+            const float stem = std::min(soil_top - top - 12, 19.f + (i % 3) * 9);
+            draw_line_ex({px, soil_top}, {px + sway, soil_top - stem}, 2, rgb(98, 124, 67));
+            for (int j = 0; j < 3; ++j) {
+                draw_ellipse(px - 4 + sway, soil_top - stem * (j + 1) / 4, 6, 2.5f, rgb(127, 153, 88));
+                draw_ellipse(px + 4 + sway, soil_top - stem * (j + 1) / 4 - 3, 6, 2.5f, rgb(106, 135, 71));
+            }
+            if (draft_starter == starter::meadow)
+                draw_circle(px + sway, soil_top - stem, 4, rgb(231, 194, 127));
+        }
+    }
+    draw_ellipse_lines(cx, top, radius, 7, rgb(133, 159, 135));
+    draw_line_ex({cx - radius, top}, {cx - radius, bottom}, 2, rgb(133, 159, 135));
+    draw_line_ex({cx + radius, top}, {cx + radius, bottom}, 2, rgb(133, 159, 135));
+    draw_ellipse_lines(cx, bottom, radius, 7, rgb(133, 159, 135));
+    draw_line_ex({cx - radius + 7, top + 10}, {cx - radius + 7, soil_top - 9}, 2, rgb(251, 250, 229, 190));
+}
+void user_interface::vessel_dimensions(float x, float y) {
+    const float tx = x + 228;
+    text(vessel_name(draft_design.form), tx, y + 108, 24, ink, true);
+    text(std::format("{:.0f} cm wide / {:.0f} cm tall", draft_design.radius() * 200,
+                     draft_design.height() * 100),
+         tx, y + 143, 15, faded);
+    text(std::format("{:.1f} L of growing room", draft_design.parameters().air_volume * 1000), tx, y + 171,
+         15, faded);
+    text(std::format("{:.1f} L drainage reserve", draft_design.reservoir_capacity()), tx, y + 197, 15, faded);
 }
 }
