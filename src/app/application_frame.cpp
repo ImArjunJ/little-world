@@ -1,10 +1,10 @@
-#include "application.hpp"
+#include "greenhouse_session.hpp"
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
 
 namespace terrarium {
-void application::walk(bool jump, double elapsed, bool focused) {
+void greenhouse_session::walk(bool jump, double elapsed, bool focused) {
     const auto keys = display.keys();
     if (!pointer.captured() || !focused || !frontend.walking())
         return;
@@ -17,7 +17,7 @@ void application::walk(bool jump, double elapsed, bool focused) {
     if (!game.carry_clear(explorer.camera(false), landscape))
         explorer.relocate(before.feet, before.yaw, std::asin(before.direction.y));
 }
-void application::play_footsteps() {
+void greenhouse_session::play_footsteps() {
     const auto audio = frontend.settings().audio;
     footsteps.volume(audio.enabled ? audio.master : 0);
     const auto position = explorer.position();
@@ -27,16 +27,16 @@ void application::play_footsteps() {
     if (float impact = explorer.take_landing(); impact > 0)
         footsteps.step(indoors, std::min(.42f, impact * .055f));
 }
-void application::apply_window_preferences(bool focused) {
+void greenhouse_session::apply_window_preferences(bool focused) {
     frontend.apply_window_preferences();
     if (frontend.quit_requested())
-        running = false;
+        host_.scenes().quit();
     pointer.focus(focused);
     pointer.request(frontend.walking());
     sync_pointer();
 }
-void application::draw_interface(frame_input input, const sengine::window_metrics& viewport, double elapsed,
-                                 bool focused) {
+void greenhouse_session::draw_interface(frame_input input, const sengine::window_metrics& viewport,
+                                        double elapsed, bool focused) {
     const auto mouse = display.pointer();
     input.pointer.x = mouse.x * viewport.width / std::max(1, viewport.logical_width);
     input.pointer.y = mouse.y * viewport.height / std::max(1, viewport.logical_height);
@@ -46,7 +46,7 @@ void application::draw_interface(frame_input input, const sengine::window_metric
     controls.viewport(float(viewport.width) / viewport.height);
     frontend.draw(viewport.width, viewport.height, viewport.scale, elapsed, input.pointer, focused);
 }
-void application::update_ambience(bool focused) {
+void greenhouse_session::update_ambience(bool focused) {
     audio_environment environment{};
     if (const auto* garden = game.active()) {
         environment.pond = garden->world.pond_level();
@@ -54,7 +54,7 @@ void application::update_ambience(bool focused) {
     }
     ambience.update(environment, frontend.settings().audio, focused);
 }
-terrarium::camera_pose application::view_camera(const terrarium::camera_pose& player, float aspect) {
+terrarium::camera_pose greenhouse_session::view_camera(const terrarium::camera_pose& player, float aspect) {
     auto camera = game.mode() == greenhouse_mode::explore || game.holding() ? player : controls.camera();
     if (!game.holding())
         return camera;
@@ -65,7 +65,7 @@ terrarium::camera_pose application::view_camera(const terrarium::camera_pose& pl
     camera.fov = std::lerp(camera.fov, carrying_fov, game.carry_blend());
     return camera;
 }
-void application::configure_view(const terrarium::camera_pose& camera) {
+void greenhouse_session::configure_view(const terrarium::camera_pose& camera) {
     const auto focal = controls.world_point({});
     const float distance = std::sqrt((camera.eye.x - focal.x) * (camera.eye.x - focal.x) +
                                      (camera.eye.y - focal.y) * (camera.eye.y - focal.y) +
@@ -76,8 +76,8 @@ void application::configure_view(const terrarium::camera_pose& camera) {
     const auto ui = frontend.settings();
     renderer.configure(ui.performance, ui.ambient_occlusion, ui.lens_blur, inspecting, distance);
 }
-void application::present_frame(const terrarium::camera_pose& camera,
-                                const sengine::window_metrics& viewport) {
+void greenhouse_session::present_frame(const terrarium::camera_pose& camera,
+                                       const sengine::window_metrics& viewport) {
     const bool exporting = !frontend.photograph().empty();
     try {
         if (renderer.frame(camera, viewport.width, viewport.height, frontend.photograph(), !exporting) &&
@@ -90,14 +90,14 @@ void application::present_frame(const terrarium::camera_pose& camera,
         frontend.finish_photograph(error.what());
     }
 }
-void application::advance_world(const frame_input& input, double elapsed, bool focused) {
+void greenhouse_session::advance_world(const frame_input& input, double elapsed, bool focused) {
     walk(input.jump_pressed, elapsed, focused);
     play_footsteps();
     if (focused)
         game.advance(elapsed, frontend.living());
 }
-void application::draw_frame(frame_input input, const sengine::window_metrics& viewport, double elapsed,
-                             bool focused) {
+void greenhouse_session::draw_frame(frame_input input, const sengine::window_metrics& viewport,
+                                    double elapsed, bool focused) {
     draw_interface(input, viewport, elapsed, focused);
     apply_window_preferences(focused);
     const auto player = explorer.camera(!frontend.settings().reduced_motion && !game.holding());

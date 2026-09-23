@@ -1,33 +1,19 @@
-#include "application.hpp"
+#include "greenhouse_session.hpp"
 #include <algorithm>
 #include <cmath>
 
 namespace terrarium {
 using sengine::event_type;
 using sengine::key_code;
-bool is_input(const sengine::input_event& event) {
-    switch (event.type) {
-    case event_type::key_down:
-    case event_type::key_up:
-    case event_type::text_input:
-    case event_type::mouse_motion:
-    case event_type::mouse_down:
-    case event_type::mouse_up:
-    case event_type::mouse_wheel:
+bool greenhouse_session::close_requested() {
+    if (game.save() && frontend.save_preferences())
         return true;
-    default:
-        return false;
-    }
+    if (!game.error().empty())
+        frontend.notify(game.error());
+    return false;
 }
-void application::window_event(const sengine::input_event& event) {
+void greenhouse_session::window_event(const sengine::input_event& event) {
     switch (event.type) {
-    case event_type::quit:
-    case event_type::close:
-        if (game.save() && frontend.save_preferences())
-            running = false;
-        else if (!game.error().empty())
-            frontend.notify(game.error());
-        break;
     case event_type::focus_lost:
         pointer.focus(false);
         explorer.stop();
@@ -50,7 +36,7 @@ void pointer_event(frame_input& input, const sengine::input_event& event) {
     if (event.type == event_type::mouse_wheel)
         input.pointer.wheel += event.wheel.y;
 }
-void application::walking_shortcut(frame_input& input, const sengine::input_event& event) {
+void greenhouse_session::walking_shortcut(frame_input& input, const sengine::input_event& event) {
     if (event.type != event_type::key_down || event.key.repeat || frontend.typing())
         return;
     if (game.mode() != greenhouse_mode::explore || !frontend.walking())
@@ -69,7 +55,7 @@ void application::walking_shortcut(frame_input& input, const sengine::input_even
         break;
     }
 }
-void application::look_around(const sengine::input_event& event) {
+void greenhouse_session::look_around(const sengine::input_event& event) {
     if (event.type != event_type::mouse_motion || !pointer.captured() || !frontend.walking())
         return;
     const auto before = explorer.camera(false);
@@ -77,7 +63,7 @@ void application::look_around(const sengine::input_event& event) {
     if (!game.carry_clear(explorer.camera(false), landscape))
         explorer.relocate(before.feet, before.yaw, std::asin(before.direction.y));
 }
-void application::sync_pointer() {
+void greenhouse_session::sync_pointer() {
     const bool capture = pointer.captured();
     if (display.captured() == capture)
         return;
@@ -88,21 +74,18 @@ void application::sync_pointer() {
         frontend.notify(display.error());
     }
 }
-frame_input application::poll_events() {
-    frame_input input;
+void greenhouse_session::begin_frame() {
+    frame_input_ = {};
     frontend.begin_events();
-    sengine::input_event event;
-    while (display.poll(event)) {
-        window_event(event);
-        if (is_input(event) && !display.metrics().focused)
-            continue;
-        if ((event.type == event_type::key_down && !event.key.repeat) || event.type == event_type::mouse_down)
-            pointer.retry();
-        pointer_event(input, event);
-        frontend.event(event, pointer.captured());
-        walking_shortcut(input, event);
-        look_around(event);
-    }
-    return input;
+}
+bool greenhouse_session::event(const sengine::input_event& event) {
+    window_event(event);
+    if ((event.type == event_type::key_down && !event.key.repeat) || event.type == event_type::mouse_down)
+        pointer.retry();
+    pointer_event(frame_input_, event);
+    frontend.event(event, pointer.captured());
+    walking_shortcut(frame_input_, event);
+    look_around(event);
+    return false;
 }
 }
