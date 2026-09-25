@@ -21,155 +21,97 @@ void configure_lighting(garden_scene_state& state, render_quality quality) {
     state.sun = add_sun(scene, sun);
     set_environment(scene, {});
 }
-void load_greenhouse(garden_scene_state& state, const std::filesystem::path& path) {
-    auto& scene = state.resources;
-    state.asset = load_scene(scene, path);
-    for (auto entity : nodes(scene, state.asset)) {
-        const auto label = node_name(scene, state.asset, entity);
-        const char* name = label.c_str();
-        if (name && std::string_view(name).starts_with("Glazing")) {
-            auto instance = entity;
-            if (renderable(scene, instance))
-                cast_shadows(scene, instance, false);
+void cast_shadows(model_instance& model, model_node node, bool enabled) {
+    if (model.renderable(node))
+        model.cast_shadows(node, enabled);
+    for (auto child : model.children(node))
+        cast_shadows(model, child, enabled);
+}
+float canopy_radius(const model_instance& model, model_node node) {
+    float result{};
+    if (model.renderable(node)) {
+        const auto bounds = model.bounds(node);
+        const auto transform = model.world_transform(node);
+        for (int x : {-1, 1})
+            for (int y : {-1, 1})
+                for (int z : {-1, 1}) {
+                    const auto corner =
+                        transform *
+                        float4(bounds.center + bounds.half_extent * float3{float(x), float(y), float(z)}, 1);
+                    result = std::max(result, std::hypot(corner.x, corner.z));
+                }
+    }
+    for (auto child : model.children(node))
+        result = std::max(result, canopy_radius(model, child));
+    return result;
+}
+void bind_gardens(garden_scene_state& state, material_id glass) {
+    auto& model = *state.gardens;
+    state.plots.reserve(greenhouse::spots().size());
+    for (std::size_t i = 0; i < greenhouse::spots().size(); ++i) {
+        const auto suffix = std::to_string(i);
+        garden_plot plot;
+        plot.root = model.find("Garden " + suffix);
+        plot.marker = model.find("Placement " + suffix);
+        model.show(plot.root, false);
+        for (unsigned kind = 0; kind < plot.vessels.size(); ++kind) {
+            const auto node = model.find("Vessel " + suffix + " " + std::to_string(kind));
+            plot.vessels[kind] = node;
+            model.cast_shadows(node, false);
+            if (kind == 0 || kind == 3)
+                model.material(node, glass);
         }
-    }
-}
-void bind_garden_nodes(garden_scene_state& state) {
-    auto& scene = state.resources;
-    for (auto entity : nodes(scene, state.gardens)) {
-        const auto label = node_name(scene, state.gardens, entity);
-        const char* name = label.c_str();
-        if (label.empty())
-            continue;
-        int a, b, c;
-        if (std::string_view(name) == "Gardener boot left" || std::string_view(name) == "Gardener boot right")
-            state.boots[std::string_view(name).ends_with("left") ? 0 : 1] = {entity,
-                                                                             local_transform(scene, entity)};
-        if (std::sscanf(name, "Placement %d", &a) == 1 && a >= 0 && a < 10)
-            state.markers[a] = entity;
-        if (std::sscanf(name, "Garden %d", &a) == 1 && a >= 0 && a < 10)
-            state.jars[a] = entity;
-        if (std::sscanf(name, "Plant %d %d", &a, &b) == 2 && a >= 0 && a < 10 && b >= 0 && b < 320)
-            state.plants[a][b] = {entity, local_transform(scene, entity)};
-        if (std::sscanf(name, "Foliage %d %d %d", &a, &b, &c) == 3 && a >= 0 && a < 10 && b >= 0 && b < 320 &&
-            c >= 0 && c < 3)
-            state.foliage[a][b][c] = {entity, local_transform(scene, entity)};
-        if (std::sscanf(name, "Preview %d", &a) == 1 && a >= 0 && a < 6)
-            state.previews[a] = {entity, local_transform(scene, entity)};
-        if (std::sscanf(name, "Vessel %d %d", &a, &b) == 2 && a >= 0 && a < 10 && b >= 0 && b < 4) {
-            state.vessels[a][b] = {entity, local_transform(scene, entity)};
-            auto r = entity;
-            if (renderable(scene, r)) {
-                cast_shadows(scene, r, false);
-                if (b == 0 || b == 3)
-                    set_material(scene, r, state.glass, 0);
-            }
+        for (auto node : model.children(plot.root)) {
+            if (std::ranges::find(plot.vessels, node) != plot.vessels.end())
+                continue;
+            const auto variants = model.children(node);
+            if (variants.size() != 3)
+                throw std::runtime_error("A plant needs three foliage variants");
+            plant_nodes plant{{node, model.local_transform(node)}, {variants[0], variants[1], variants[2]}};
+            for (auto variant : plant.foliage)
+                model.show(variant, false);
+            plot.plants.push_back(plant);
         }
+        if (plot.plants.empty())
+            throw std::runtime_error("Garden has no plant slots");
+        state.plots.push_back(std::move(plot));
     }
-}
-void prepare_visibility(garden_scene_state& state) {
-    auto& scene = state.resources;
-    for (unsigned i = 0; i < 10; ++i) {
-        for (auto& variants : state.foliage[i])
-            for (auto& n : variants)
-                collect(state, n, n.entity);
-        for (auto& n : state.vessels[i])
-            collect(state, n, n.entity);
-        visible(scene, state.markers[i], true);
+    for (unsigned kind = 0; kind < state.previews.size(); ++kind) {
+        const auto node = model.find("Preview " + std::to_string(kind));
+        state.previews[kind] = {node, model.local_transform(node)};
+        model.show(node, false);
+        cast_shadows(model, node, false);
     }
-    for (auto& n : state.previews) {
-        collect(state, n, n.entity);
-        for (auto entity : n.renderables)
-            cast_shadows(scene, entity, false);
-    }
-}
-void measure_canopies(garden_scene_state& state) {
-    auto& scene = state.resources;
     for (unsigned kind = 0; kind < state.plant_radius.size(); ++kind) {
-        for (auto entity : state.foliage[0][0][kind].renderables) {
-            const auto bounds = node_bounds(scene, entity);
-            const auto transform = world_transform(scene, entity);
-            for (int x : {-1, 1})
-                for (int y : {-1, 1})
-                    for (int z : {-1, 1}) {
-                        const auto corner =
-                            transform *
-                            sengine::float4(bounds.center + bounds.half_extent *
-                                                                sengine::float3{float(x), float(y), float(z)},
-                                            1);
-                        state.plant_radius[kind] =
-                            std::max(state.plant_radius[kind], std::hypot(corner.x, corner.z));
-                    }
-        }
-        if (!std::isfinite(state.plant_radius[kind]) || state.plant_radius[kind] <= 0)
+        const auto radius = canopy_radius(model, state.plots.front().plants.front().foliage[kind]);
+        if (!std::isfinite(radius) || radius <= 0)
             throw std::runtime_error("Imported plant canopy has invalid bounds");
+        state.plant_radius[kind] = radius;
     }
 }
-void load_character(garden_scene_state& state, const std::filesystem::path& path) {
-    auto& scene = state.resources;
-    state.character = load_scene(scene, path.parent_path() / "gardener.glb");
-    for (auto entity : nodes(scene, state.character)) {
-        const auto label = node_name(scene, state.character, entity);
-        const char* name = label.c_str();
-        auto t = entity;
-        if (!label.empty() && t)
-            state.joints[name] = {entity, local_transform(scene, t)};
-        if (name &&
-            (std::string_view(name) == "First person hidden head" || std::string_view(name) == "Eyebrows" ||
-             std::string_view(name) == "Eyes" || std::string_view(name) == "Hair_Buns")) {
-            auto r = entity;
-            if (renderable(scene, r))
-                layers(scene, r, 0x02);
-        }
-    }
-}
-void bind_animation(garden_scene_state& state) {
-    auto& scene = state.resources;
-    const auto clips = animation_names(scene, state.character);
-    for (size_t i = 0; i < clips.size(); ++i)
-        state.clips[clips[i]] = i;
-    for (auto name : {"Idle_Loop", "Walk_Loop", "Jog_Fwd_Loop", "Sprint_Loop", "Crouch_Idle_Loop",
-                      "Crouch_Fwd_Loop", "Jump_Loop"})
-        if (!state.clips.contains(name))
-            throw std::runtime_error(std::string("Missing gardener animation: ") + name);
-    for (unsigned i = 0; i < 2; ++i) {
-        auto foot = world_transform(scene, state.joints.at(i ? "foot_r" : "foot_l").entity);
-        state.boot_attachments[i] = inverse(foot) *
-                                    sengine::translation(sengine::float3{foot[3].x, 0, foot[3].z}) *
-                                    state.boots[i].bind;
-    }
-}
-}
-void collect(garden_scene_state& state, garden_scene_state::named& group, scene_node entity) {
-    group.renderables = renderable_descendants(state.resources, entity);
-}
-void show(garden_scene_state& state, garden_scene_state::named& group, bool enabled) {
-    if (group.visible == enabled)
-        return;
-    group.visible = enabled;
-    visible(state.resources, group.renderables, enabled);
 }
 void load_garden_scene(garden_scene_state& state, const std::filesystem::path& path, render_quality quality) {
     auto& scene = state.resources;
+    const auto directory = path.parent_path();
     configure_lighting(state, quality);
-    load_greenhouse(state, path);
-    state.gardens = load_scene(scene, path.parent_path() / "gardens.glb", false);
-    state.fauna = std::make_unique<fauna_meshes>(
-        scene, load_scene(scene, path.parent_path() / "fauna.glb", false), path.parent_path());
-    state.glass = load_material(scene, path.parent_path() / "glass.filamat");
-    bind_garden_nodes(state);
-    prepare_visibility(state);
+    state.environment = std::make_unique<model_instance>(model(scene, path));
+    for (const auto& node : state.environment->nodes())
+        if (node.name.starts_with("Glazing") && state.environment->renderable(node.id))
+            state.environment->cast_shadows(node.id, false);
+    state.environment->visible(true);
+    state.environment->synchronize();
+    state.gardens = std::make_unique<model_instance>(model(scene, directory / "gardens.glb"));
+    bind_gardens(state, load_material(scene, directory / "glass.filamat"));
     state.substrate = std::make_unique<substrate_meshes>(
-        scene, material_at(scene, state.vessels[0][1].entity, 0), path.parent_path() / "water.filamat");
-    measure_canopies(state);
-    for (auto& n : state.boots) {
-        collect(state, n, n.entity);
-        show(state, n, true);
-    }
-    load_character(state, path);
-    bind_animation(state);
-    state.hud = std::make_unique<sengine::native_hud>(state.graphics, path.parent_path() / "hud.filamat",
-                                                      path.parent_path().parent_path() / "fonts/Body.ttf",
-                                                      path.parent_path().parent_path() / "fonts/Display.ttf");
+        scene, state.gardens->copy_material(state.plots.front().vessels[1]), directory / "water.filamat");
+    state.fauna = std::make_unique<fauna_meshes>(scene, directory);
+    state.character = std::make_unique<gardener>(
+        scene, directory / "gardener.glb", *state.gardens,
+        std::array{state.gardens->find("Gardener boot left"), state.gardens->find("Gardener boot right")});
+    state.gardens->visible(true);
+    state.gardens->synchronize();
+    state.hud = std::make_unique<native_hud>(state.graphics, directory / "hud.filamat",
+                                             directory.parent_path() / "fonts/Body.ttf",
+                                             directory.parent_path() / "fonts/Display.ttf");
 }
 }

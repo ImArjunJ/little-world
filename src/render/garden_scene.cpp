@@ -51,15 +51,14 @@ void garden_scene::present(const greenhouse& game, const terrarium::camera_pose&
                          (game.mode() == greenhouse_mode::leave_editor && game.progress() < .2f);
     state.player_head = player.eye;
     auto carry = carrying(game, player);
-    begin_transforms(state.resources);
-    update_gardens(state, game, carry);
-    update_preview(state, game, preview);
-    end_transforms(state.resources);
-    state.previous_plants.fill(0);
-    for (const auto& garden : game.gardens())
-        if (garden.place >= 0)
-            state.previous_plants[garden.place] = garden.world.plants().size();
-    animate_gardener(state, player, seconds, carry);
+    {
+        const sengine::transform_scope transforms(state.resources);
+        update_gardens(state, game, carry);
+        update_preview(state, game, preview);
+    }
+    state.fauna->finish();
+    state.character->animate(player, seconds, carry);
+    state.gardens->synchronize();
 }
 bool garden_scene::frame(const terrarium::camera_pose& camera, unsigned width, unsigned height,
                          const std::filesystem::path& capture, bool capture_interface) {
