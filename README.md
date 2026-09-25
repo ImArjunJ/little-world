@@ -13,6 +13,6 @@ cd little-world
 ./run.sh
 ```
 
-Clang with libc++, CMake 3.24+, SDL3 3.2+, FreeType and libpng. Linux defaults to OpenGL; macOS uses Metal. The engine also supports GLFW and Vulkan through its CMake options. Assets are included. Saves use your platform’s application-data directory, or `$XDG_DATA_HOME/little-world`.
+Requires Clang with libc++, CMake 3.24+, SDL3 3.2+, FreeType and libpng.
 
 WASD to walk. E to tend, F to lift, J for the journal. Escape to return.
